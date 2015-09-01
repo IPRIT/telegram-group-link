@@ -115,7 +115,8 @@ function onTest(message) {
  */
 function onMessage(message) {
     if (message.messageType === 'new_chat_participant'
-        && message.new_chat_participant.username === config.botNickname) {
+        && message.new_chat_participant.username === config.botNickname
+        || message.group_chat_created) {
         return onBotJoin(message);
     }
     if (message.messageType === 'left_chat_participant'
