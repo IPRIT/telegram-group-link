@@ -77,12 +77,15 @@ function messageSender(chat_id, message) {
                 send: textMessageSender
             };
         }
+        case 'audio': {
+            //todo
+        }
     }
 
     /**
      * @param {boolean} disable_web_page_preview
-     * @param {number|Boolean} reply_to_message_id
-     * @param {ReplyKeyboardMarkup|ReplyKeyboardHide|ForceReply} reply_markup
+     * @param {number|boolean} reply_to_message_id
+     * @param {ReplyKeyboardMarkup|ReplyKeyboardHide|ForceReply|boolean} reply_markup
      */
     function textMessageSender(disable_web_page_preview, reply_to_message_id, reply_markup) {
         var textMessageApiUrl = getApiUrl() + '/sendMessage';

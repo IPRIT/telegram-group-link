@@ -1,6 +1,20 @@
 var User = require('./User');
 var GroupChat = require('./GroupChat');
+var Audio = require('./Audio');
+var Contact = require('./Contact');
+var Document = require('./Document');
+var Location = require('./Location');
+var Photo = require('./Photo');
+var PhotoSize = require('./PhotoSize');
+var Sticker = require('./Sticker');
+var Video = require('./Video');
+var Voice = require('./Voice');
 
+/**
+ * @link https://core.telegram.org/bots/api#message
+ * @param {object} message
+ * @constructor
+ */
 function Message(message) {
     this.messageData = message;
 
@@ -109,11 +123,19 @@ Message.prototype.getChat = function() {
 };
 
 
+/**
+ * @return {boolean}
+ */
 Message.prototype.isCommand = function() {
     return /^\/\w{1,}/i.test(this.text);
 };
 
 
+/**
+ * @param {string[]} events
+ * @param {string} ownNickname
+ * @return {boolean}
+ */
 Message.prototype.isOwnCommand = function(events, ownNickname) {
     if (!Array.isArray(events)
         || !events.length
@@ -129,6 +151,9 @@ Message.prototype.isOwnCommand = function(events, ownNickname) {
 };
 
 
+/**
+ * @return {string} Command name
+ */
 Message.prototype.getCommand = function() {
     var matches = this.text.match(/^(\/\w+)/i);
     return matches[0];

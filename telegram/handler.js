@@ -1,5 +1,7 @@
 var TelegramBot = require('./bot');
 var config = require('./config');
+var Controller = require('./controller');
+var chatsController = new Controller();
 
 TelegramBot.setToken(config.botToken);
 
@@ -136,6 +138,21 @@ function onBotJoin(message) {
     if (message.isGroupMessage) {
         onStart(message);
     }
+
+    /*chatsController.deleteChat(message.getChat().id, function(err) {
+        chatsController.addChat({id: message.getChat().id}, {id: message.getUser().id}, function(err, chatDocument) {
+            console.log('Created:', chatDocument);
+            chatsController.getChat(chatDocument.chat.id, function(err, chatDocument) {
+                console.log('Received:', chatDocument);
+                chatsController.createConnection(chatDocument.chat.id, function(err, linkDocument) {
+                    console.log('Link has been created:', linkDocument);
+                    chatsController.useInviteKey(linkDocument.invite_key, 2, function(err, linkDocument) {
+                        console.log('Link established!', linkDocument);
+                    });
+                })
+            })
+        });
+    });*/
 }
 
 
