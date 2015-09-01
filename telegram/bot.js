@@ -1,30 +1,137 @@
 var unirest = require('unirest');
+var events = require('events');
+var extend = require('node.extend');
+var config = require('./config');
 
-module.exports = {
-    handler: BotHandler
+var Message = require('./message/Message');
+
+
+var TelegramBot = {
+    setToken: SetTokenFunction,
+    on: AddEventListener,
+    off: RemoveEventListener,
+    handle: Handle,
+    getSender: messageSender,
+    sendText: sendSimpleText
 };
 
-var chats = [];
+var _botToken;
+var EventEmitter = new events.EventEmitter;
+var API_URI = 'https://api.telegram.org/bot#BOT_API_KEY#';
 
-function BotHandler(messageObj) {
-    var message = messageObj.message;
-    var text = message.text;
-    var chatId = message.chat.id;
-    for (var i = 0; i < chats.length; ++i) {
-        if (chatId === chats[i]) continue;
-        sendMessage(chats[i], text);
+/**
+ * @param {string} token
+ */
+function SetTokenFunction(token) {
+    if (!token.length || typeof token !== "string") {
+        throw new TypeError('Token should be a string and not empty');
     }
-    chats.push(chatId);
+    _botToken = token;
 }
 
-function sendMessage(chatId, text) {
-    unirest.post('https://api.telegram.org/bot114633843:AAFLWQ2lhepMlT1w4zFyGlWpZD4PzmKnHoU/sendMessage')
+
+/**
+ * @param event
+ * @param callback
+ */
+function AddEventListener(event, callback) {
+    EventEmitter.on(event, callback);
+}
+
+/**
+ * @param event
+ * @param callback
+ */
+function RemoveEventListener(event, callback) {
+    EventEmitter.removeListener(event, callback);
+}
+
+/**
+ * @param {object} messageData
+ */
+function Handle(messageData) {
+    var message = new Message(messageData.message);
+
+    if (message.text.length &&
+        message.isCommand() &&
+        message.isOwnCommand(Object.keys(EventEmitter._events), config.botNickname)) {
+        EventEmitter.emit(message.getCommand(), message);
+    } else {
+        EventEmitter.emit('message', message);
+    }
+}
+
+/**
+ * @param {number} chat_id
+ * @param {Message} message
+ */
+function messageSender(chat_id, message) {
+    var requestBody = {
+        chat_id: chat_id
+    };
+
+    switch (message.messageType) {
+        case 'text': {
+            return {
+                type: 'text',
+                send: textMessageSender
+            };
+        }
+    }
+
+    /**
+     * @param {boolean} disable_web_page_preview
+     * @param {number|Boolean} reply_to_message_id
+     * @param {ReplyKeyboardMarkup|ReplyKeyboardHide|ForceReply} reply_markup
+     */
+    function textMessageSender(disable_web_page_preview, reply_to_message_id, reply_markup) {
+        var textMessageApiUrl = getApiUrl() + '/sendMessage';
+        var extendObject = {
+            text: message.text,
+            disable_web_page_preview: !!disable_web_page_preview
+        };
+        if (reply_to_message_id) {
+            extendObject.reply_to_message_id = reply_to_message_id;
+        }
+        if (reply_markup) {
+            extendObject.reply_markup = JSON.stringify(reply_markup.getObjectFactory());
+        }
+        var contextRequestBody = extend(true, extendObject, requestBody);
+        send(textMessageApiUrl, contextRequestBody);
+    }
+
+
+    function send(url, body) {
+        unirest.post(url)
+            .header('Accept', 'application/json')
+            .send(body)
+            .end(function (response) {
+                console.log(response.body);
+            });
+    }
+}
+
+
+/**
+ * @return {string} Api url
+ */
+function getApiUrl() {
+    return API_URI.replace('#BOT_API_KEY#', _botToken);
+}
+
+
+function sendSimpleText(chat_id, text) {
+    var textMessageApiUrl = getApiUrl() + '/sendMessage';
+    var requestBody = {
+        chat_id: chat_id,
+        text: text
+    };
+    unirest.post(textMessageApiUrl)
         .header('Accept', 'application/json')
-        .send({
-            "chat_id": chatId,
-            "text": text
-        })
+        .send(requestBody)
         .end(function (response) {
             console.log(response.body);
         });
 }
+
+module.exports = TelegramBot;
