@@ -114,5 +114,34 @@ function onTest(message) {
  * @param {Message} message
  */
 function onMessage(message) {
+    if (message.messageType === 'new_chat_participant'
+        && message.new_chat_participant.username === config.botNickname) {
+        return onBotJoin(message);
+    }
+    if (message.messageType === 'left_chat_participant'
+        && message.left_chat_participant.username === config.botNickname) {
+        return onBotLeave(message);
+    }
     console.log('message');
+}
+
+
+/**
+ * @param {Message} message
+ */
+function onBotJoin(message) {
+    // добавляем чат в базу данных
+    // устанавливаем администратора
+    if (message.isGroupMessage) {
+        onStart(message);
+    }
+}
+
+
+/**
+ * @param {Message} message
+ */
+function onBotLeave(message) {
+    // удаляем чат из базы данных
+    // удаляем все связи
 }

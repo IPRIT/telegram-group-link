@@ -13,13 +13,24 @@ function Message(message) {
 
     this.messageType = 'text';
 
-    if (this.audio) {
+    if (message.audio) {
         this.messageType = 'audio';
     }
 
-    if (this.document) {
+    if (message.document) {
         this.messageType = 'document';
     }
+
+    if (message.new_chat_participant) {
+        this.messageType = 'new_chat_participant';
+        this.new_chat_participant = new User(message.new_chat_participant);
+    }
+
+    if (message.left_chat_participant) {
+        this.messageType = 'left_chat_participant';
+        this.left_chat_participant = new User(message.left_chat_participant);
+    }
+
     //...
 }
 
