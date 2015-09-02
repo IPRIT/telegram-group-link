@@ -118,6 +118,25 @@ Controller.prototype.useInviteKey = function(invite_key, chat_id, callback) {
     });
 };
 
+Controller.prototype.getActiveLinks = function(chat_id, callback) {
+    LinksModel.find({
+        $and: [{
+            $or: [{
+                'first_chat.id': chat_id
+            }, {
+                'second_chat.id': chat_id
+            }]
+        }, {
+            invite_key: 'used'
+        }]
+    }, function(err, linksCollection) {
+        if (err) {
+            return callback(true);
+        }
+        callback(false, linksCollection);
+    });
+};
+
 
 /**
  * @param chat_id

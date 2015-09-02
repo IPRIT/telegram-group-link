@@ -139,6 +139,13 @@ function onBotJoin(message) {
         onStart(message);
     }
 
+    /*chatsController.getActiveLinks(-26351860, function(err, links) {
+        if (err) {
+            return;
+        }
+        console.log(links, links.length);
+    });*/
+
     /*chatsController.deleteChat(message.getChat().id, function(err) {
         chatsController.addChat({id: message.getChat().id}, {id: message.getUser().id}, function(err, chatDocument) {
             console.log('Created:', chatDocument);
