@@ -78,7 +78,30 @@ function onHelp(message) {
  * @param {Message} message
  */
 function onConnect(message) {
-    console.log('/connect');
+    var curChatId = message.getChat().id;
+    chatsController.getChat(curChatId, function(err, chatDocument) {
+        if (err) {
+            return console.log('An error occurred with link creation');
+        }
+        if (message.getUser().id !== chatDocument.admin.id) {
+            return sendAccessError(curChatId);
+        }
+        chatsController.getActiveLinks(curChatId, function(err, links) {
+            if (err) {
+                return console.log('Error with getting links');
+            }
+            if (Array.isArray(links) && links.length > chatsController.LIMIT_NUMBER_OF_ACTIVE_LINKS) {
+                return sendLinksLimitError(curChatId);
+            }
+            chatsController.createConnectionNode(curChatId, function(err, chatDocument) {
+                if (err) {
+                    return console.log('Error with creating connection node');
+                }
+                var text = chatDocument.invite_key;
+                TelegramBot.sendText(curChatId, text);
+            });
+        });
+    });
 }
 
 
@@ -125,6 +148,17 @@ function onMessage(message) {
         && message.left_chat_participant.username === config.botNickname) {
         return onBotLeave(message);
     }
+
+    switch (message.messageType) {
+        case 'text' : {
+            handleTextMessage(message);
+            break;
+        }
+        case 'audio': {
+            break;
+        }
+    }
+    //TelegramBot.sendText(message.getChat().id, 'Message');
     console.log('message');
 }
 
@@ -139,27 +173,11 @@ function onBotJoin(message) {
         onStart(message);
     }
 
-    /*chatsController.getActiveLinks(-26351860, function(err, links) {
+    chatsController.addChat(message.getChat(), message.getUser(), function(err, chat) {
         if (err) {
-            return;
+            return console.log('An error occurred with chat creation');
         }
-        console.log(links, links.length);
-    });*/
-
-    /*chatsController.deleteChat(message.getChat().id, function(err) {
-        chatsController.addChat({id: message.getChat().id}, {id: message.getUser().id}, function(err, chatDocument) {
-            console.log('Created:', chatDocument);
-            chatsController.getChat(chatDocument.chat.id, function(err, chatDocument) {
-                console.log('Received:', chatDocument);
-                chatsController.createConnection(chatDocument.chat.id, function(err, linkDocument) {
-                    console.log('Link has been created:', linkDocument);
-                    chatsController.useInviteKey(linkDocument.invite_key, 2, function(err, linkDocument) {
-                        console.log('Link established!', linkDocument);
-                    });
-                })
-            })
-        });
-    });*/
+    });
 }
 
 
@@ -169,4 +187,86 @@ function onBotJoin(message) {
 function onBotLeave(message) {
     // удаляем чат из базы данных
     // удаляем все связи
+}
+
+
+function sendAccessError(chat_id) {
+    var text = 'Данное действие разрешено только администратору Бота в текущей группе.';
+    TelegramBot.sendText(chat_id, text);
+}
+
+
+function sendUnexpectedError(chat_id) {
+    var text = 'Произошла неизвестная ошибка.';
+    TelegramBot.sendText(chat_id, text);
+}
+
+
+function sendAlreadyLinkedError(chat_id) {
+    var text = 'Группы, которые Вы пытаетесь связать, уже связаны.';
+    TelegramBot.sendText(chat_id, text);
+}
+
+
+function sendWrongCodeError(chat_id) {
+    var text = 'Неверный код связывания.';
+    TelegramBot.sendText(chat_id, text);
+}
+
+
+function sendLinksLimitError(chat_id) {
+    var text = 'Вы достигли предела связей с другими группами. Максимальное количество: '
+        + chatsController.LIMIT_NUMBER_OF_ACTIVE_LINKS + '.';
+    TelegramBot.sendText(chat_id, text);
+}
+
+
+function handleTextMessage(message) {
+    //chatsController.deleteLink(-26351860, -18186128, function() {
+        if (chatsController.isInviteCode(message.text)) {
+            return useInviteCode(message);
+        }
+    //});
+
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            var sender = TelegramBot.getSender(chatId, message);
+            sender.send();
+        }
+    });
+}
+
+function useInviteCode(message) {
+    var curChatId = message.getChat().id;
+    chatsController.getChat(curChatId, function(err, chatDocument) {
+        if (err) {
+            return console.log('An error occurred with activating invite code');
+        }
+        if (message.getUser().id !== chatDocument.admin.id) {
+            return sendAccessError(curChatId);
+        }
+        chatsController.useInviteKey(message.text, curChatId, function(err, linkDocument) {
+            if (err) {
+                if (err === 2) {
+                    return sendAlreadyLinkedError(curChatId);
+                } else {
+                    return sendWrongCodeError(curChatId);
+                }
+            }
+            var secondGroupChatTitle = message.isGroupMessage ?
+                message.getChat().title : message.getChat().first_name;
+
+            var textForFirstChat = 'Готово! Соединение с «' + secondGroupChatTitle + '» успешно установлено.',
+                textForSecondChat = 'Готово! Соединение с другой группой успешно установлено.';
+
+            TelegramBot.sendText(linkDocument.first_chat.id, textForFirstChat);
+            TelegramBot.sendText(linkDocument.second_chat.id, textForSecondChat);
+            console.log('Link has been created!');
+        });
+    });
 }

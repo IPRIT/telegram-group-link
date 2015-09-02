@@ -109,7 +109,7 @@ function messageSender(chat_id, message) {
             .header('Accept', 'application/json')
             .send(body)
             .end(function (response) {
-                console.log(response.body);
+                //console.log(response.body);
             });
     }
 }
@@ -133,7 +133,7 @@ function sendSimpleText(chat_id, text) {
         .header('Accept', 'application/json')
         .send(requestBody)
         .end(function (response) {
-            console.log(response.body);
+            //console.log(response.body);
         });
 }
 
