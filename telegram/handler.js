@@ -79,7 +79,7 @@ function onHelp(message) {
  */
 function onConnect(message) {
     if (!message.isGroupMessage) {
-        return sendOnlyGroupError();
+        return sendOnlyGroupError(message.getChat().id);
     }
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
@@ -113,7 +113,7 @@ function onConnect(message) {
  */
 function onList(message) {
     if (!message.isGroupMessage) {
-        return sendOnlyGroupError();
+        return sendOnlyGroupError(message.getChat().id);
     }
     console.log('/list');
 }
@@ -124,7 +124,7 @@ function onList(message) {
  */
 function onDropConnect(message) {
     if (!message.isGroupMessage) {
-        return sendOnlyGroupError();
+        return sendOnlyGroupError(message.getChat().id);
     }
     console.log('/drop_connect');
 }
@@ -148,6 +148,9 @@ function onTest(message) {
  * @param {Message} message
  */
 function onMessage(message) {
+    if (!message.isGroupMessage) {
+        return sendOnlyGroupError(message.getChat().id);
+    }
     if (message.messageType === 'new_chat_participant'
         && message.new_chat_participant.username === config.botNickname
         || message.group_chat_created) {
@@ -211,7 +214,7 @@ function sendUnexpectedError(chat_id) {
 }
 
 function sendOnlyGroupError(chat_id) {
-    var text = 'Данная команда доступна только для групп.';
+    var text = 'Бот доступен только для групп. Добавьте бота в группу.';
     TelegramBot.sendText(chat_id, text);
 }
 
@@ -246,15 +249,14 @@ function handleTextMessage(message) {
         if (err) {
             return;
         }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        message.text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' (' + groupChatTitle + '):\n' + message.text;
+
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
                 links[i].second_chat.id : links[i].first_chat.id;
-
-            var groupChatTitle = message.isGroupMessage ?
-                message.getChat().title : message.getChat().first_name;
-
-            message.text = message.getUser().getViewName() + ' ' +
-                message.getUser().getAt() + ' (' + groupChatTitle + '):\n' + message.text;
             var sender = TelegramBot.getSender(chatId, message);
             sender.send();
         }
