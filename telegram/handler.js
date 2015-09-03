@@ -179,7 +179,7 @@ function onDropConnect(message) {
             });
         });
     });
-    console.log('/drop_connect');
+    console.log('/drop_connect'); //test
 }
 
 
