@@ -3,6 +3,7 @@ function Voice(voice) {
         voice = {};
     }
     this.voice = voice;
+    this.file_id = voice.file_id;
 }
 
 Voice.prototype.getObjectFactory = function() {

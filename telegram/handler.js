@@ -115,6 +115,54 @@ function onList(message) {
     if (!message.isGroupMessage) {
         return sendOnlyGroupError(message.getChat().id);
     }
+    var curChatId = message.getChat().id;
+    chatsController.getChat(curChatId, function(err, chatDocument) {
+        if (err || !chatDocument) {
+            return console.log('An error occurred with getting chat');
+        }
+        chatsController.getActiveLinks(curChatId, function(err, links) {
+            if (err) {
+                return;
+            }
+            var groups = {},
+                uniqueGroups;
+            for (var i = 0; i < links.length; ++i) {
+                groups[ links[i].first_chat.id ] = links[i].first_chat.id;
+                groups[ links[i].second_chat.id ] = links[i].second_chat.id;
+            }
+
+            uniqueGroups = Object.keys(groups);
+            uniqueGroups.splice(uniqueGroups.indexOf(curChatId.toString()), 1);
+
+            chatsController.getChats(uniqueGroups, function(err, chatDocuments) {
+                if (err) {
+                    return;
+                }
+                var list = [];
+                for (var i = 0; i < chatDocuments.length; ++i) {
+                    var curChat = chatDocuments[i];
+                    list.push(curChat.chat.title);
+                }
+
+                var sender;
+                if (!chatDocuments.length) {
+                    message.text = 'Соединений с другими группами пока нет.';
+                    sender = TelegramBot.getSender(message.getChat().id, message);
+                    return sender.send();
+                }
+
+                message.text = 'Соединения с другими группами:\n\n';
+                for (var el = 0; el < list.length; ++el) {
+                    message.text += (el + 1) + ') ' + list[el] + '\n';
+                }
+
+                sender = TelegramBot.getSender(message.getChat().id, message);
+                var replyMarkup = new ReplyKeyboardHide();
+                sender.send(false, false, replyMarkup);
+                console.log('Links was sent');
+            });
+        });
+    });
     console.log('/list');
 }
 
@@ -179,7 +227,7 @@ function onDropConnect(message) {
             });
         });
     });
-    console.log('/drop_connect'); //test
+    console.log('/drop_connect');
 }
 
 
@@ -211,10 +259,50 @@ function onMessage(message) {
     switch (message.messageType) {
         case 'text' : {
             handleTextMessage(message);
-            console.log('new text message');
+            break;
+        }
+        case 'photo': {
+            handlePhotoMessage(message);
             break;
         }
         case 'audio': {
+            handleAudioMessage(message);
+            break;
+        }
+        case 'document': {
+            handleDocumentMessage(message);
+            break;
+        }
+        case 'sticker': {
+            handleStickerMessage(message);
+            break;
+        }
+        case 'video': {
+            handleVideoMessage(message);
+            break;
+        }
+        case 'voice': {
+            handleVoiceMessage(message);
+            break;
+        }
+        case 'location': {
+            handleLocationMessage(message);
+            break;
+        }
+        case 'contact': {
+            handleContactMessage(message);
+            break;
+        }
+        case 'new_chat_participant': {
+            handleNewChatParticipantMessage(message);
+            break;
+        }
+        case 'left_chat_participant': {
+            handleLeftChatParticipantMessage(message);
+            break;
+        }
+        case 'new_chat_title': {
+            handleNewChatTitleMessage(message);
             break;
         }
     }
@@ -277,6 +365,263 @@ function handleTextMessage(message) {
         }
     });
 }
+
+
+function handlePhotoMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' отправил(-а) фото из (' + groupChatTitle + ')';
+
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            send(message, chatId, text);
+        }
+
+        function send(message, chatId, text) {
+            TelegramBot.sendText(chatId, text);
+            setTimeout(function() {
+                TelegramBot.getSender(chatId, message).send();
+            }, 10);
+        }
+    });
+}
+
+
+function handleAudioMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' отправил(-а) аудио из (' + groupChatTitle + ')';
+
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            send(message, chatId, text);
+        }
+
+        function send(message, chatId, text) {
+            TelegramBot.sendText(chatId, text);
+            setTimeout(function() {
+                TelegramBot.getSender(chatId, message).send();
+            }, 10);
+        }
+    });
+}
+
+
+function handleDocumentMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' отправил(-а) файл из (' + groupChatTitle + ')';
+
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            send(message, chatId, text);
+        }
+
+        function send(message, chatId, text) {
+            TelegramBot.sendText(chatId, text);
+            setTimeout(function() {
+                TelegramBot.getSender(chatId, message).send();
+            }, 10);
+        }
+    });
+}
+
+
+function handleStickerMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' отправил(-а) стикер из (' + groupChatTitle + ')';
+
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            send(message, chatId, text);
+        }
+
+        function send(message, chatId, text) {
+            TelegramBot.sendText(chatId, text);
+            setTimeout(function() {
+                TelegramBot.getSender(chatId, message).send();
+            }, 10);
+        }
+    });
+}
+
+
+function handleVideoMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' отправил(-а) видео из (' + groupChatTitle + ')';
+
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            send(message, chatId, text);
+        }
+
+        function send(message, chatId, text) {
+            TelegramBot.sendText(chatId, text);
+            setTimeout(function() {
+                TelegramBot.getSender(chatId, message).send();
+            }, 10);
+        }
+    });
+}
+
+
+function handleVoiceMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' отправил(-а) звукозапись из (' + groupChatTitle + ')';
+
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            send(message, chatId, text);
+        }
+
+        function send(message, chatId, text) {
+            TelegramBot.sendText(chatId, text);
+            setTimeout(function() {
+                TelegramBot.getSender(chatId, message).send();
+            }, 10);
+        }
+    });
+}
+
+
+function handleLocationMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' отправил(-а) точку на карте из (' + groupChatTitle + ')';
+
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            send(message, chatId, text);
+        }
+
+        function send(message, chatId, text) {
+            TelegramBot.sendText(chatId, text);
+            setTimeout(function() {
+                TelegramBot.getSender(chatId, message).send();
+            }, 10);
+        }
+    });
+}
+
+
+function handleContactMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' (' + groupChatTitle + ') отправил контакт:\n' +
+            message.contact.getViewContact();
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            TelegramBot.sendText(chatId, text);
+        }
+    });
+}
+
+
+function handleNewChatParticipantMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' вступил в чат «' + groupChatTitle + '».';
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            TelegramBot.sendText(chatId, text);
+        }
+    });
+}
+
+
+function handleLeftChatParticipantMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' покинул чат «' + groupChatTitle + '».';
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            TelegramBot.sendText(chatId, text);
+        }
+    });
+}
+
+
+function handleNewChatTitleMessage(message) {
+    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+        if (err) {
+            return;
+        }
+        var groupChatTitle = message.isGroupMessage ?
+            message.getChat().title : message.getChat().first_name;
+        var text = message.getUser().getViewName() + ' ' +
+            message.getUser().getAt() + ' сменил(-а) имя чата с «' + groupChatTitle + '» на «' +
+            message.new_chat_title + '»';
+        for (var i = 0; i < links.length; ++i) {
+            var chatId = links[i].first_chat.id === message.getChat().id ?
+                links[i].second_chat.id : links[i].first_chat.id;
+            TelegramBot.sendText(chatId, text);
+        }
+    });
+}
+
 
 function useInviteCode(message) {
     var curChatId = message.getChat().id;

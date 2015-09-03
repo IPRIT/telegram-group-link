@@ -18,4 +18,8 @@ Contact.prototype.getObjectFactory = function() {
     return this.contact;
 };
 
+Contact.prototype.getViewContact = function() {
+    return this.phone_number + '\n' + this.first_name;
+};
+
 module.exports = Contact;

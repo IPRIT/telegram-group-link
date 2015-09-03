@@ -77,8 +77,53 @@ function messageSender(chat_id, message) {
                 send: textMessageSender
             };
         }
+        case 'photo': {
+            return {
+                type: 'photo',
+                send: photoMessageSender
+            }
+        }
         case 'audio': {
-            //todo
+            return {
+                type: 'audio',
+                send: audioMessageSender
+            }
+        }
+        case 'document': {
+            return {
+                type: 'document',
+                send: documentMessageSender
+            }
+        }
+        case 'sticker': {
+            return {
+                type: 'sticker',
+                send: stickerMessageSender
+            }
+        }
+        case 'video': {
+            return {
+                type: 'video',
+                send: videoMessageSender
+            }
+        }
+        case 'voice': {
+            return {
+                type: 'voice',
+                send: voiceMessageSender
+            }
+        }
+        case 'location': {
+            return {
+                type: 'location',
+                send: locationMessageSender
+            }
+        }
+        case 'contact': {
+            return {
+                type: 'contact',
+                send: contactMessageSender
+            }
         }
     }
 
@@ -101,6 +146,123 @@ function messageSender(chat_id, message) {
         }
         var contextRequestBody = extend(true, extendObject, requestBody);
         send(textMessageApiUrl, contextRequestBody);
+    }
+
+
+    function photoMessageSender(caption, reply_to_message_id, reply_markup) {
+        var messageApiUrl = getApiUrl() + '/sendPhoto';
+        var extendObject = {
+            photo: message.photo && message.photo.length > 0 ?
+                message.photo[0].file_id : ''
+        };
+        if (caption) {
+            extendObject.caption = caption;
+        }
+        if (reply_to_message_id) {
+            extendObject.reply_to_message_id = reply_to_message_id;
+        }
+        if (reply_markup) {
+            extendObject.reply_markup = JSON.stringify(reply_markup.getObjectFactory());
+        }
+        var contextRequestBody = extend(true, extendObject, requestBody);
+        send(messageApiUrl, contextRequestBody);
+    }
+
+
+    function audioMessageSender(reply_to_message_id, reply_markup) {
+        var audioMessageApiUrl = getApiUrl() + '/sendAudio';
+        var extendObject = {
+            audio: message.audio.file_id
+        };
+        if (reply_to_message_id) {
+            extendObject.reply_to_message_id = reply_to_message_id;
+        }
+        if (reply_markup) {
+            extendObject.reply_markup = JSON.stringify(reply_markup.getObjectFactory());
+        }
+        var contextRequestBody = extend(true, extendObject, requestBody);
+        send(audioMessageApiUrl, contextRequestBody);
+    }
+
+
+    function documentMessageSender(reply_to_message_id, reply_markup) {
+        var documentMessageApiUrl = getApiUrl() + '/sendDocument';
+        var extendObject = {
+            document: message.document.file_id
+        };
+        if (reply_to_message_id) {
+            extendObject.reply_to_message_id = reply_to_message_id;
+        }
+        if (reply_markup) {
+            extendObject.reply_markup = JSON.stringify(reply_markup.getObjectFactory());
+        }
+        var contextRequestBody = extend(true, extendObject, requestBody);
+        send(documentMessageApiUrl, contextRequestBody);
+    }
+
+
+    function stickerMessageSender(reply_to_message_id, reply_markup) {
+        var messageApiUrl = getApiUrl() + '/sendSticker';
+        var extendObject = {
+            sticker: message.sticker.file_id
+        };
+        if (reply_to_message_id) {
+            extendObject.reply_to_message_id = reply_to_message_id;
+        }
+        if (reply_markup) {
+            extendObject.reply_markup = JSON.stringify(reply_markup.getObjectFactory());
+        }
+        var contextRequestBody = extend(true, extendObject, requestBody);
+        send(messageApiUrl, contextRequestBody);
+    }
+
+
+    function videoMessageSender(reply_to_message_id, reply_markup) {
+        var messageApiUrl = getApiUrl() + '/sendVideo';
+        var extendObject = {
+            video: message.video.file_id
+        };
+        if (reply_to_message_id) {
+            extendObject.reply_to_message_id = reply_to_message_id;
+        }
+        if (reply_markup) {
+            extendObject.reply_markup = JSON.stringify(reply_markup.getObjectFactory());
+        }
+        var contextRequestBody = extend(true, extendObject, requestBody);
+        send(messageApiUrl, contextRequestBody);
+    }
+
+
+    function voiceMessageSender(reply_to_message_id, reply_markup) {
+        var messageApiUrl = getApiUrl() + '/sendVoice';
+        var extendObject = {
+            voice: message.voice.file_id
+        };
+        if (reply_to_message_id) {
+            extendObject.reply_to_message_id = reply_to_message_id;
+        }
+        if (reply_markup) {
+            extendObject.reply_markup = JSON.stringify(reply_markup.getObjectFactory());
+        }
+        var contextRequestBody = extend(true, extendObject, requestBody);
+        send(messageApiUrl, contextRequestBody);
+    }
+
+
+    function locationMessageSender(reply_to_message_id, reply_markup) {
+        var messageApiUrl = getApiUrl() + '/sendLocation';
+        var extendObject = {
+            latitude: message.location.latitude,
+            longitude: message.location.longitude
+        };
+        if (reply_to_message_id) {
+            extendObject.reply_to_message_id = reply_to_message_id;
+        }
+        if (reply_markup) {
+            extendObject.reply_markup = JSON.stringify(reply_markup.getObjectFactory());
+        }
+        var contextRequestBody = extend(true, extendObject, requestBody);
+        send(messageApiUrl, contextRequestBody);
     }
 
 
