@@ -78,6 +78,9 @@ function onHelp(message) {
  * @param {Message} message
  */
 function onConnect(message) {
+    if (!message.isGroupMessage) {
+        return sendOnlyGroupError();
+    }
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
         if (err) {
@@ -109,6 +112,9 @@ function onConnect(message) {
  * @param {Message} message
  */
 function onList(message) {
+    if (!message.isGroupMessage) {
+        return sendOnlyGroupError();
+    }
     console.log('/list');
 }
 
@@ -117,6 +123,9 @@ function onList(message) {
  * @param {Message} message
  */
 function onDropConnect(message) {
+    if (!message.isGroupMessage) {
+        return sendOnlyGroupError();
+    }
     console.log('/drop_connect');
 }
 
@@ -201,6 +210,11 @@ function sendUnexpectedError(chat_id) {
     TelegramBot.sendText(chat_id, text);
 }
 
+function sendOnlyGroupError(chat_id) {
+    var text = 'Данная команда доступна только для групп.';
+    TelegramBot.sendText(chat_id, text);
+}
+
 
 function sendAlreadyLinkedError(chat_id) {
     var text = 'Группы, которые Вы пытаетесь связать, уже связаны.';
@@ -235,6 +249,12 @@ function handleTextMessage(message) {
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
                 links[i].second_chat.id : links[i].first_chat.id;
+
+            var groupChatTitle = message.isGroupMessage ?
+                message.getChat().title : message.getChat().first_name;
+
+            message.text = message.getUser().getViewName() + ' ' +
+                message.getUser().getAt() + ' (' + groupChatTitle + '):\n' + message.text;
             var sender = TelegramBot.getSender(chatId, message);
             sender.send();
         }
