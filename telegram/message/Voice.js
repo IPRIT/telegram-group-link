@@ -8,3 +8,5 @@ function Voice(voice) {
 Voice.prototype.getObjectFactory = function() {
     return this.voice;
 };
+
+module.exports = Voice;

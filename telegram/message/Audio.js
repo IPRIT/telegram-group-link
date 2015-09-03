@@ -20,3 +20,5 @@ Audio.prototype.getObjectFactory = function() {
         file_size: this.file_size
     }
 };
+
+module.exports = Audio;

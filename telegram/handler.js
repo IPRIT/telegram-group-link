@@ -171,8 +171,8 @@ function onDropConnect(message) {
                 sender = TelegramBot.getSender(message.getChat().id, message);
                 var replyMarkup = new ReplyKeyboardMarkup({
                     resize_keyboard: true,
-                    keyboard: keyboard,
-                    one_time_keyboard: true
+                    one_time_keyboard: true,
+                    keyboard: keyboard
                 });
                 sender.send(false, false, replyMarkup);
                 console.log('Links for drop was sent');
@@ -301,8 +301,9 @@ function useInviteCode(message) {
             var textForFirstChat = 'Готово! Соединение с «' + secondGroupChatTitle + '» успешно установлено.',
                 textForSecondChat = 'Готово! Соединение с другой группой успешно установлено.';
 
-            TelegramBot.sendText(linkDocument.first_chat.id, textForFirstChat);
-            TelegramBot.sendText(linkDocument.second_chat.id, textForSecondChat);
+            var replyMarkup = new ReplyKeyboardHide();
+            TelegramBot.sendText(linkDocument.first_chat.id, textForFirstChat, replyMarkup);
+            TelegramBot.sendText(linkDocument.second_chat.id, textForSecondChat, replyMarkup);
             console.log('Link has been created!');
         });
     });
@@ -331,7 +332,7 @@ function dropConnection(message) {
                     return;
                 }
                 var textForFirstChat, textForSecondChat,
-                    placeholder = 'Соединение с группой %group_name% удалено!';
+                    placeholder = 'Соединение с группой «%group_name%» удалено!';
 
                 if (chats.length < 2) {
                     return sendUnexpectedError(curChatId);

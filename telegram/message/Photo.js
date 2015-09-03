@@ -8,3 +8,5 @@ function Photo(photoArr) {
 Photo.prototype.getObjectFactory = function() {
     return this.photoArr;
 };
+
+module.exports = Photo;

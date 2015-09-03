@@ -8,3 +8,5 @@ function Video(video) {
 Video.prototype.getObjectFactory = function() {
     return this.video;
 };
+
+module.exports = Video;

@@ -109,7 +109,7 @@ function messageSender(chat_id, message) {
             .header('Accept', 'application/json')
             .send(body)
             .end(function (response) {
-                //console.log(response.body);
+                console.log(response.body);
             });
     }
 }
@@ -123,17 +123,20 @@ function getApiUrl() {
 }
 
 
-function sendSimpleText(chat_id, text) {
+function sendSimpleText(chat_id, text, replyMarkup) {
     var textMessageApiUrl = getApiUrl() + '/sendMessage';
     var requestBody = {
         chat_id: chat_id,
         text: text
     };
+    if (replyMarkup) {
+        requestBody.reply_markup = JSON.stringify(replyMarkup.getObjectFactory());
+    }
     unirest.post(textMessageApiUrl)
         .header('Accept', 'application/json')
         .send(requestBody)
         .end(function (response) {
-            //console.log(response.body);
+            console.log(response.body);
         });
 }
 

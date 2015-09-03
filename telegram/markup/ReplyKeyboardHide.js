@@ -8,8 +8,7 @@ function ReplyKeyboardHide(replyHide) {
 
 ReplyKeyboardHide.prototype.getObjectFactory = function() {
     return {
-        hide_keyboard: this.hide_keyboard,
-        selective: this.selective
+        hide_keyboard: this.hide_keyboard
     };
 };
 

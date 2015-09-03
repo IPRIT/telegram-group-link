@@ -11,3 +11,5 @@ Document.prototype.getObjectFactory = function() {
         file_id: this.file_id
     };
 };
+
+module.exports = Document;

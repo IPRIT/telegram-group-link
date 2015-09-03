@@ -11,3 +11,5 @@ function PhotoSize(photoSize) {
 PhotoSize.prototype.getObjectFactory = function() {
     return this.photoSize;
 };
+
+module.exports = PhotoSize;

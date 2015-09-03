@@ -17,3 +17,5 @@ function Contact(contact) {
 Contact.prototype.getObjectFactory = function() {
     return this.contact;
 };
+
+module.exports = Contact;

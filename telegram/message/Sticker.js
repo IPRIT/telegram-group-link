@@ -11,3 +11,5 @@ function Sticker(sticker) {
 Sticker.prototype.getObjectFactory = function() {
     return this.sticker;
 };
+
+module.exports = Sticker;

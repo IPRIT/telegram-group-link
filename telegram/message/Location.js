@@ -10,3 +10,5 @@ function Location(location) {
 Location.prototype.getObjectFactory = function() {
     return this.location;
 };
+
+module.exports = Location;
