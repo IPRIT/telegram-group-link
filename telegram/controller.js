@@ -25,7 +25,8 @@ Controller.prototype.addChat = function(chat, admin, callback) {
         }
         chatDocument = new ChatsModel({
             chat: {
-                id: chat.id
+                id: chat.id,
+                title: chat.title || 'No title'
             },
             admin: {
                 id: admin.id
@@ -48,11 +49,20 @@ Controller.prototype.addChat = function(chat, admin, callback) {
  * @param callback
  */
 Controller.prototype.deleteChat = function(chat_id, callback) {
-    ChatsModel.findOneAndRemove({ 'chat.id': chat_id }, function(err) {
+    this.getAllLinks(chat_id, function(err, links) {
         if (err) {
             return callback(true);
         }
-        callback(false);
+        var noop = function() {};
+        for (var i = 0; i < links.length; ++i) {
+            LinksModel.findByIdAndRemove(links[i]._id, noop);
+        }
+        ChatsModel.findOneAndRemove({ 'chat.id': chat_id }, function(err) {
+            if (err) {
+                return callback(true);
+            }
+            callback(false);
+        });
     });
 };
 
@@ -142,6 +152,7 @@ Controller.prototype.useInviteKey = function(invite_key, chat_id, callback) {
     });
 };
 
+
 Controller.prototype.getActiveLinks = function(chat_id, callback) {
     LinksModel.find({
         $and: [{
@@ -158,6 +169,32 @@ Controller.prototype.getActiveLinks = function(chat_id, callback) {
             return callback(true);
         }
         callback(false, linksCollection);
+    });
+};
+
+
+Controller.prototype.getAllLinks = function(chat_id, callback) {
+    LinksModel.find({
+        $or: [{
+            'first_chat.id': chat_id
+        }, {
+            'second_chat.id': chat_id
+        }]
+    }, function(err, linksCollection) {
+        if (err) {
+            return callback(true);
+        }
+        callback(false, linksCollection);
+    });
+};
+
+
+Controller.prototype.getChats = function(chat_ids, callback) {
+    ChatsModel.find({ 'chat.id': { $in: chat_ids } }, function(err, chats) {
+        if (err) {
+            return callback(true);
+        }
+        callback(false, chats);
     });
 };
 
@@ -181,13 +218,19 @@ Controller.prototype.deleteLink = function(first_chat_id, second_chat_id, callba
                 'invite_key': 'used'
             }]
         }]
-    }, function(err) {
-        if (err) {
+    }, function(err, result) {
+        if (err || !result) {
             return callback(true);
         }
         console.log('Link has been deleted!');
         callback(false);
     });
+};
+
+
+Controller.prototype.getDropChatId = function(text) {
+    var regex = /.*\(drop\:\s?(\-?\d+)\)$/i;
+    return parseInt(text.match(regex)[1]);
 };
 
 
@@ -208,6 +251,18 @@ function isInviteCode(code) {
     return /^[0-9a-f]+\:[0-9a-f]+\-?([0-9a-f]+)?$/i.test(code);
 }
 
+/**
+ * @param {Message} message
+ * @return {boolean}
+ */
+function isDropConnectionMessage(message) {
+    if (!message || !message.text || !message.text.length) {
+        return false;
+    }
+    return /.*\(drop\:\s?(\-?\d+)\)$/i.test(message.text);
+}
+
 Controller.prototype.isInviteCode = isInviteCode;
+Controller.prototype.isDropConnectionMessage = isDropConnectionMessage;
 
 module.exports = Controller;

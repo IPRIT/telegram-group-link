@@ -21,7 +21,8 @@ var Chats = new Schema({
         id: {
             type: Number,
             index: true
-        }
+        },
+        title: String
     },
     admin: {
         id: {

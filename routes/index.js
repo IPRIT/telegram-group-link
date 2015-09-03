@@ -8,4 +8,4 @@ router.post('/tgwebhook', function(req, res, next) {
     res.end();
 });
 
-module.exports = router; //test
+module.exports = router;
