@@ -2,4 +2,4 @@
 
 --------
 
-[@group_link_bot](telegram.me/group_link_bot)
+[@group_link_bot](https://telegram.me/group_link_bot)
