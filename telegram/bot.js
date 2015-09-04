@@ -119,12 +119,6 @@ function messageSender(chat_id, message) {
                 send: locationMessageSender
             }
         }
-        case 'contact': {
-            return {
-                type: 'contact',
-                send: contactMessageSender
-            }
-        }
     }
 
     /**
@@ -152,8 +146,8 @@ function messageSender(chat_id, message) {
     function photoMessageSender(caption, reply_to_message_id, reply_markup) {
         var messageApiUrl = getApiUrl() + '/sendPhoto';
         var extendObject = {
-            photo: message.photo && message.photo.length > 0 ?
-                message.photo[0].file_id : ''
+            photo: message.photo && message.photo.photoArr && message.photo.photoArr.length > 0 ?
+                message.photo.photoArr[message.photo.photoArr.length - 1].file_id : ''
         };
         if (caption) {
             extendObject.caption = caption;

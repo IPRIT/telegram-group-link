@@ -375,7 +375,7 @@ function handlePhotoMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' отправил(-а) фото из (' + groupChatTitle + ')';
+            message.getUser().getAt() + ' отправил(-а) фото из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -401,7 +401,7 @@ function handleAudioMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' отправил(-а) аудио из (' + groupChatTitle + ')';
+            message.getUser().getAt() + ' отправил(-а) аудио из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -427,7 +427,7 @@ function handleDocumentMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' отправил(-а) файл из (' + groupChatTitle + ')';
+            message.getUser().getAt() + ' отправил(-а) файл из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -453,7 +453,7 @@ function handleStickerMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' отправил(-а) стикер из (' + groupChatTitle + ')';
+            message.getUser().getAt() + ' отправил(-а) стикер из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -479,7 +479,7 @@ function handleVideoMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' отправил(-а) видео из (' + groupChatTitle + ')';
+            message.getUser().getAt() + ' отправил(-а) видео из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -505,7 +505,7 @@ function handleVoiceMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' отправил(-а) звукозапись из (' + groupChatTitle + ')';
+            message.getUser().getAt() + ' отправил(-а) звукозапись из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -531,7 +531,7 @@ function handleLocationMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' отправил(-а) точку на карте из (' + groupChatTitle + ')';
+            message.getUser().getAt() + ' отправил(-а) точку на карте из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -575,8 +575,8 @@ function handleNewChatParticipantMessage(message) {
         }
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
-        var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' вступил в чат «' + groupChatTitle + '».';
+        var text = message.new_chat_participant.getViewName() + ' ' +
+            message.new_chat_participant.getAt() + ' вступил(-а) в чат «' + groupChatTitle + '».';
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
                 links[i].second_chat.id : links[i].first_chat.id;
@@ -593,8 +593,8 @@ function handleLeftChatParticipantMessage(message) {
         }
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
-        var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' покинул чат «' + groupChatTitle + '».';
+        var text = message.left_chat_participant.getViewName() + ' ' +
+            message.left_chat_participant.getAt() + ' покинул(-а) чат «' + groupChatTitle + '».';
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
                 links[i].second_chat.id : links[i].first_chat.id;
@@ -609,16 +609,23 @@ function handleNewChatTitleMessage(message) {
         if (err) {
             return;
         }
-        var groupChatTitle = message.isGroupMessage ?
-            message.getChat().title : message.getChat().first_name;
-        var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' сменил(-а) имя чата с «' + groupChatTitle + '» на «' +
-            message.new_chat_title + '»';
-        for (var i = 0; i < links.length; ++i) {
-            var chatId = links[i].first_chat.id === message.getChat().id ?
-                links[i].second_chat.id : links[i].first_chat.id;
-            TelegramBot.sendText(chatId, text);
-        }
+        chatsController.getChat(message.getChat().id, function(err, chatDocument) {
+            if (err) {
+                return;
+            }
+            var text = message.getUser().getViewName() + ' ' +
+                message.getUser().getAt() + ' сменил(-а) имя чата с «' + chatDocument.chat.title + '» на «' +
+                message.new_chat_title + '»';
+
+            chatDocument.chat.title = message.new_chat_title;
+            chatDocument.save();
+
+            for (var i = 0; i < links.length; ++i) {
+                var chatId = links[i].first_chat.id === message.getChat().id ?
+                    links[i].second_chat.id : links[i].first_chat.id;
+                TelegramBot.sendText(chatId, text);
+            }
+        });
     });
 }
 
@@ -709,7 +716,9 @@ function sendUnexpectedError(chat_id) {
 }
 
 function sendOnlyGroupError(chat_id) {
-    var text = 'Бот доступен только для групп. Добавьте бота в группу.';
+    var text = 'Бот доступен только для групп. Добавьте бота в группу.\n\n' +
+        'Команды, доступные в данном чате:\n' +
+        '/help — полное описание Бота.';
     TelegramBot.sendText(chat_id, text);
 }
 
