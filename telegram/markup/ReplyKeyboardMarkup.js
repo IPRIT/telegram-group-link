@@ -4,7 +4,7 @@ function ReplyKeyboardMarkup(replyMarkup) {
     }
     this.keyboard = replyMarkup.keyboard || [ [] ];
     this.resize_keyboard = replyMarkup.resize_keyboard || false;
-    this.one_time_keyboard = replyMarkup.one_time_keyboard || true;
+    this.one_time_keyboard = !!replyMarkup.one_time_keyboard;
     this.selective = replyMarkup.selective || false;
 }
 
