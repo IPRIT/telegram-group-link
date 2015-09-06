@@ -18,6 +18,7 @@ var Voice = require('./Voice');
 function Message(message) {
     this.messageData = message;
 
+    this.id = message.message_id;
     this.user = new User(message.from);
     this.isGroupMessage = message.chat.id < 0;
     this.chat = this.isGroupMessage ?

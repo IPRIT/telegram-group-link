@@ -12,7 +12,8 @@ ReplyKeyboardMarkup.prototype.getObjectFactory = function() {
     return {
         keyboard: this.keyboard,
         resize_keyboard: this.resize_keyboard,
-        one_time_keyboard: this.one_time_keyboard
+        one_time_keyboard: this.one_time_keyboard,
+        selective: this.selective
     };
 };
 

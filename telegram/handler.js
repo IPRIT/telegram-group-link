@@ -15,6 +15,7 @@ module.exports = {
 };
 
 function BotHandler(messageObj) {
+    console.log(messageObj);
     TelegramBot.handle(messageObj);
 }
 
@@ -218,11 +219,11 @@ function onDropConnect(message) {
                 message.text = 'Выберите какое соединение удалить.';
                 sender = TelegramBot.getSender(message.getChat().id, message);
                 var replyMarkup = new ReplyKeyboardMarkup({
-                    resize_keyboard: true,
                     one_time_keyboard: true,
-                    keyboard: keyboard
+                    keyboard: keyboard,
+                    selective: true
                 });
-                sender.send(false, false, replyMarkup);
+                sender.send(false, message.id, replyMarkup);
                 console.log('Links for drop was sent');
             });
         });
@@ -696,7 +697,8 @@ function dropConnection(message) {
                     textForFirstChat = placeholder.replace('%group_name%', chats[0].chat.title || chats[0].chat.id);
                     textForSecondChat = placeholder.replace('%group_name%', chats[1].chat.title || chats[1].chat.id);
                 }
-                TelegramBot.sendText(curChatId, textForFirstChat);
+                var replyHide = new ReplyKeyboardHide();
+                TelegramBot.sendText(curChatId, textForFirstChat, replyHide);
                 TelegramBot.sendText(anotherChatId, textForSecondChat);
             });
         });
