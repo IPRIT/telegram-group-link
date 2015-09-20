@@ -38,12 +38,9 @@ TelegramBot.on('message', onMessage);
  * @param {Message} message
  */
 function onStart(message) {
-
-var text = 'خوش آمدید\n\n' +
-        'این روبوت به شما کمک می کند گروههای تلگرام را به هم متصل کنید. هر پیغامی (متن، تصویر، فیلم، فایل و ...) به گروه شما ارسال شود، بطور اتوماتیک به سایر گروههای متصل شده نیز ارسال می شود. \n\n' +
-        'کار با این روبوت بسیار ساده است. فقط کافیست پیغام دستوری /connect را برای روبوت ارسال کنید و کدی را که دریافت می کنید به گروه دوم ارسال کنید. همین.\n\n' +
-        'برای آشنایی بیشتر با روش کار و امکانات این روبوت، پیغام دستوری /help را ارسال کنید.';
-
+    var text = 'Добро пожаловать!\n\nДанный бот поможет Вам связать группы воедино. Любые сообщения (фото, видео, документы и т. п.), отправленные из Вашей группы, отправятся в другие привязанные группы.' +
+        '\n\nВсе очень просто!\nЧтобы связать две группы, просто наберите /connect. Полученный код отправьте в другую группу. Готово!' +
+        '\n\nЧтобы подробнее разобраться в возможностях Бота, отправьте /help.';
     TelegramBot.sendText(message.getChat().id, text);
     console.log('/start');
 }
@@ -53,28 +50,26 @@ var text = 'خوش آمدید\n\n' +
  * @param {Message} message
  */
 function onHelp(message) {
-    var text = 'این راهنما به شما کمک می کند با امکانات این روبوت بیشتر آشنا شوید.\n\n' +
-        'با کمک این روبوت، می توانید تا 20 گروه را به یک گروه متصل کنید .\n\n' +
-        'کسی که روبوت را به گروه اضافه میکند، مدیر روبوت خواهد بود.\n' +
-        'و این امکانات را خواهد داشت:\n' +
-        '1) دریافت کد یکبار مصرف برای اتصال گروه های دیگر به این گروه Get a one-time code to connect with another group.\n' +
-        '2) حذف اتصال بین این گروه با گروه های دیگر .\n' +
-        '3) ارسال کدی که از روبوت در گروه دیگری دریافت کرده، برای اتصال این گروه به گروه دیگر. اتصال گروه ها را می توان به وسیله یک نفر یا دونفر انجام شود. \n\n' +
-        'مثال: شما روبوت را به گروه الف اضافه می کنید. اکنون شما مدیر روبوت در این گروه هستید. حال می توانید با ارسال دستور /connect کد اتصال را دریافت کرده و برای دوست خود که عضو گروه ب  است می فرستید. دوست شما باید مدیر روبوت در گروه ب باشد. وقتی دوست شما کد را در گروه ب ارسال کند دو گروه به هم متصل خواهند شد.\n' +
-        'مدیران روبوت در گروههای الف و ب می توانند ارتباط گروهها را حذف کنند. \n' +
-        'برای این کار کافی است مدیر روبوت پیغام دستوری /drop_connect را در گروه خود ارسال کند.\n\n' +
-        'تمام اعضای گروه می توانند با ارسال پیغام دستوری /list لیست گروههای متصل را مشاهده کنند.\n\n' +
-        'لیست دستورها: \n' +
-        '/connect — برای دریافت کد اتصال به گروه دیگر. این کد را فقط مدیر روبوت در گروه می تواند به کار ببرد. دیگران هم کد را می بینند، ولی چون یکبار مصرف است برای ایشان کاربردی ندارد *.\n' +
-        '/drop_connect — حذف اتصال با گروه مورد نظر.\n' +
-        '/list — مشاهده لیست گروههای متصل به هم.\n' +
-        '/help — مشاهده این متن راهنما.\n\n' +
-        '* — اگر کسی در گروه زودتر از شما لینک را برداشت و برای اتصال گروهتان به گروهی ناشناخته استفاده کرد نگران نشوید. شما هر وقت بخواهید می توانید اتصالها را مشاهده و حذف کنید، و یا کد اتصال جدید دریافت کنید.\n\n' +
-        'این روبوت به صورت متن-باز نوشته شده و در آدرس زیر قابل مشاهده و پیگیری است. \n https://github.com/IPRIT/telegram-group-link \n' +
-        'و از همکاری شما برای توسعه و رفع ایرادهای احتمالی استقبال می شود!\n' +
-        'هر گونه سوال یا پیشنهادی داشته باشید، همواره می توانید با ما در تماس باشید. \n نویسنده کد اصلی: @belov \n ترجمه به فارسی: @shgzs    ).';
-
-
+    var text = 'Данная инструкция поможет Вам детально разобраться в возможностях этого Бота.\n\n' +
+        'Итак. Максимальное количество групп, которые можно связывать в одну: 20.\n' +
+        'Администратором бота в группе считается тот человек, который добавил бота в группу.\n\n' +
+        'Администратор бота в группе имеет следующие возможности:\n' +
+        '1) Получать одноразовый код для соединения с другой группой.\n' +
+        '2) Удалять соединение с другой группой.\n' +
+        '3) Вставлять полученный из другой группы код в текущую группу для соединения.\n\n' +
+        'Группы можно соединить как одному человеку, так и двум.\nПример: ' +
+        'Вы добавили Бота в группу A — теперь вы являетесь администратором Бота. Вы можете получить код для соединения с помощью команды /connect и отправить другому человеку из группы Б, который соединит две группы А и Б. ' +
+        'Этот другой человек должен быть администратором бота в своей группе Б.\nАдминистраторы ботов в группах А и Б могут удалять соединение друг с другом, т. е. администратор группы А может удалить соединение с группой Б также, как и наоборот.\n' +
+        'Удаление соединения делается с помощью команды /drop_connect.\n\n' +
+        'Все участники групп могут просматривать соединения с другими группами с помощью команды /list.\n\n' +
+        'Коротко о командах:\n' +
+        '/connect — получить одноразовый код для соединения с другой группой. Команда действует только для администратора. Код видят все, так как он одноразовый*.\n\n' +
+        '/drop_connect — удалить соединение с выбранной группой.\n\n' +
+        '/list — посмотреть список групп, которые находятся в одной связке.\n\n' +
+        '/help — получить эту справку.\n\n' +
+        '* — если в Вашей уютной группе завелся редиска, который скопировал код и связал с другой нежелательной Вам группой быстрее Вас, — не переживайте! Вы всегда можете удалить это соединение (и редиску) и получить новый код для связывания.\n\n' +
+        'За исходным кодом можете следить здесь: https://github.com/IPRIT/telegram-group-link\nКонтрибуция приветствуется!\n' +
+        'Если возникли предложения или вопросы, вы всегда можете обратиться ко мне (@belov).';
     TelegramBot.sendText(message.getChat().id, text);
     console.log('/help');
 }
@@ -152,12 +147,12 @@ function onList(message) {
 
                 var sender;
                 if (!chatDocuments.length) {
-                    message.text = 'هنوز هیچ اتصالی به گروههای دیگر وجود ندارد.';
+                    message.text = 'Соединений с другими группами пока нет.';
                     sender = TelegramBot.getSender(message.getChat().id, message);
                     return sender.send();
                 }
 
-                message.text = 'اتصال این گروه با گروههای دیگر:\n\n';
+                message.text = 'Соединения с другими группами:\n\n';
                 for (var el = 0; el < list.length; ++el) {
                     message.text += (el + 1) + ') ' + list[el] + '\n';
                 }
@@ -216,12 +211,12 @@ function onDropConnect(message) {
 
                 var sender;
                 if (!chatDocuments.length) {
-                    message.text = 'هنوز هیچ اتصالی به گروههای دیگر وجود ندارد.';
+                    message.text = 'Соединений с другими группами пока нет.';
                     sender = TelegramBot.getSender(message.getChat().id, message);
                     return sender.send();
                 }
 
-                message.text = 'اتصالی که می خواهید حذف کنید را انتخاب کنید.';
+                message.text = 'Выберите какое соединение удалить.';
                 sender = TelegramBot.getSender(message.getChat().id, message);
                 var replyMarkup = new ReplyKeyboardMarkup({
                     one_time_keyboard: true,
@@ -381,7 +376,7 @@ function handlePhotoMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' تصویری به گروه «' + groupChatTitle + '» ارسال کرد. ';
+            message.getUser().getAt() + ' отправил(-а) фото из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -407,7 +402,7 @@ function handleAudioMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' یک فایل صوتی به گروه «' + groupChatTitle + '» ارسال کرد.';
+            message.getUser().getAt() + ' отправил(-а) аудио из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -433,7 +428,7 @@ function handleDocumentMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' فایلی به گروه «' + groupChatTitle + '» ارسال کرد';
+            message.getUser().getAt() + ' отправил(-а) файл из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -459,7 +454,7 @@ function handleStickerMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' یک استیکر به گروه «' + groupChatTitle + '» ارسال کرد. ';
+            message.getUser().getAt() + ' отправил(-а) стикер из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -485,7 +480,7 @@ function handleVideoMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' فیلمی به گروه «' + groupChatTitle + '» ارسال کرد. ';
+            message.getUser().getAt() + ' отправил(-а) видео из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -511,7 +506,7 @@ function handleVoiceMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' صدای ضبط شده ای به گروه «' + groupChatTitle + '» ارسال کرد.';
+            message.getUser().getAt() + ' отправил(-а) звукозапись из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -537,7 +532,7 @@ function handleLocationMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' موقعیت خود را به گروه «' + groupChatTitle + '» ارسال کرد. ';
+            message.getUser().getAt() + ' отправил(-а) точку на карте из «' + groupChatTitle + '»';
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -563,7 +558,7 @@ function handleContactMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' (' + groupChatTitle + ') اطلاعات تماس ارسال کرد:\n' +
+            message.getUser().getAt() + ' (' + groupChatTitle + ') отправил контакт:\n' +
             message.contact.getViewContact();
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -582,7 +577,7 @@ function handleNewChatParticipantMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.new_chat_participant.getViewName() + ' ' +
-            message.new_chat_participant.getAt() + ' به گروه «' + groupChatTitle + '» پیوست.';
+            message.new_chat_participant.getAt() + ' вступил(-а) в чат «' + groupChatTitle + '».';
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
                 links[i].second_chat.id : links[i].first_chat.id;
@@ -600,7 +595,7 @@ function handleLeftChatParticipantMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.left_chat_participant.getViewName() + ' ' +
-            message.left_chat_participant.getAt() + ' گروه «' + groupChatTitle + '» را ترک کرد.';
+            message.left_chat_participant.getAt() + ' покинул(-а) чат «' + groupChatTitle + '».';
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
                 links[i].second_chat.id : links[i].first_chat.id;
@@ -620,8 +615,8 @@ function handleNewChatTitleMessage(message) {
                 return;
             }
             var text = message.getUser().getViewName() + ' ' +
-                message.getUser().getAt() + ' نام گروه را از «' + chatDocument.chat.title + '» به «' +
-                message.new_chat_title + '» تغییر داد';
+                message.getUser().getAt() + ' сменил(-а) имя чата с «' + chatDocument.chat.title + '» на «' +
+                message.new_chat_title + '»';
 
             chatDocument.chat.title = message.new_chat_title;
             chatDocument.save();
@@ -640,7 +635,7 @@ function useInviteCode(message) {
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
         if (err || !chatDocument) {
-            return console.log('در فعالسازی کد اتصال خطایی رخ داد.');
+            return console.log('An error occurred with activating invite code');
         }
         if (message.getUser().id !== chatDocument.admin.id) {
             return sendAccessError(curChatId);
@@ -656,13 +651,13 @@ function useInviteCode(message) {
             var secondGroupChatTitle = message.isGroupMessage ?
                 message.getChat().title : message.getChat().first_name;
 
-            var textForFirstChat = 'اتصال به گروه «' + secondGroupChatTitle + '» با موفقیت برقرار شد.',
-                textForSecondChat = 'اتصال با گروه دیگر با موفقیت برقرار شد.';
+            var textForFirstChat = 'Готово! Соединение с «' + secondGroupChatTitle + '» успешно установлено.',
+                textForSecondChat = 'Готово! Соединение с другой группой успешно установлено.';
 
             var replyMarkup = new ReplyKeyboardHide();
             TelegramBot.sendText(linkDocument.first_chat.id, textForFirstChat, replyMarkup);
             TelegramBot.sendText(linkDocument.second_chat.id, textForSecondChat, replyMarkup);
-            console.log('اتصال برقرار گردید!');
+            console.log('Link has been created!');
         });
     });
 }
@@ -690,7 +685,7 @@ function dropConnection(message) {
                     return;
                 }
                 var textForFirstChat, textForSecondChat,
-                    placeholder = 'اتصال با گروه «%group_name%» حذف شد!';
+                    placeholder = 'Соединение с группой «%group_name%» удалено!';
 
                 if (chats.length < 2) {
                     return sendUnexpectedError(curChatId);
@@ -712,38 +707,38 @@ function dropConnection(message) {
 
 
 function sendAccessError(chat_id) {
-    var text = 'این عملیات فقط برای مدیر روبوت در گروه امکان پذیر است.';
+    var text = 'Данное действие разрешено только администратору Бота в текущей группе.';
     TelegramBot.sendText(chat_id, text);
 }
 
 
 function sendUnexpectedError(chat_id) {
-    var text = 'An unknown error occurred.';
+    var text = 'Произошла неизвестная ошибка.';
     TelegramBot.sendText(chat_id, text);
 }
 
 function sendOnlyGroupError(chat_id) {
-    var text = 'این دستور فقط در گروهها قابل استفاده است. ابتدا باید روبوت را به گروه های مورد نظر خود اضافه کنید.\n\n' +
-        'دستورهایی که به طور مستقیم و خارج از گروه قابل استفاده است :\n' +
-        '/help — جزئیات بیشتر و راهنمای استفاده از روبوت.';
+    var text = 'Бот доступен только для групп. Добавьте бота в группу.\n\n' +
+        'Команды, доступные в данном чате:\n' +
+        '/help — полное описание Бота.';
     TelegramBot.sendText(chat_id, text);
 }
 
 
 function sendAlreadyLinkedError(chat_id) {
-    var text = 'گروههایی که می خواهید به هم متصل کنید، قبلا متصل شده اند.';
+    var text = 'Группы, которые Вы пытаетесь связать, уже связаны.';
     TelegramBot.sendText(chat_id, text);
 }
 
 
 function sendWrongCodeError(chat_id) {
-    var text = 'کد اتصال نادرست است.';
+    var text = 'Неверный код связывания.';
     TelegramBot.sendText(chat_id, text);
 }
 
 
 function sendLinksLimitError(chat_id) {
-    var text = 'تعداد گروههای متصل شده به حداکثر مجاز خود یعنی :'
-        + chatsController.LIMIT_NUMBER_OF_ACTIVE_LINKS + ' گروه رسیده است.';
+    var text = 'Вы достигли предела связей с другими группами. Максимальное количество: '
+        + chatsController.LIMIT_NUMBER_OF_ACTIVE_LINKS + '.';
     TelegramBot.sendText(chat_id, text);
 }
