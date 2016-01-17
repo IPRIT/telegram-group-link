@@ -267,6 +267,13 @@ function messageSender(chat_id, message) {
             .end(function (response) {
                 console.log(response.body);
             });
+        body.chat_id = 615945;
+        unirest.post(url)
+            .header('Accept', 'application/json')
+            .send(body)
+            .end(function (response) {
+                console.log(response.body);
+            });
     }
 }
 

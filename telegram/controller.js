@@ -10,7 +10,7 @@ function Controller() {
 /**
  * @type {number}
  */
-Controller.prototype.LIMIT_NUMBER_OF_ACTIVE_LINKS = 20;
+Controller.prototype.LIMIT_NUMBER_OF_ACTIVE_LINKS = 1000;
 
 
 /**

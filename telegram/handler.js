@@ -1,3 +1,11 @@
+/*
+ sudo rm /data/db/mongod.lock
+ sudo mongod --dbpath /data/db --repair
+ sudo chown mongodb /data/db/*
+ sudo mongod --bind_ip=$IP --nojournal
+ */
+
+
 var TelegramBot = require('./bot');
 var config = require('./config');
 var Controller = require('./controller');
@@ -29,7 +37,7 @@ TelegramBot.on('/list', onList);
 
 TelegramBot.on('/drop_connect', onDropConnect);
 
-TelegramBot.on('/setlang', onSelectLang);
+TelegramBot.on('/other_languages', onSelectLang);
 
 TelegramBot.on('message', onMessage);
 
@@ -40,7 +48,9 @@ TelegramBot.on('message', onMessage);
 function onStart(message) {
     var text = 'Добро пожаловать!\n\nДанный бот поможет Вам связать группы воедино. Любые сообщения (фото, видео, документы и т. п.), отправленные из Вашей группы, отправятся в другие привязанные группы.' +
         '\n\nВсе очень просто!\nЧтобы связать две группы, просто наберите /connect. Полученный код отправьте в другую группу. Готово!' +
-        '\n\nЧтобы подробнее разобраться в возможностях Бота, отправьте /help.';
+        '\n\nЧтобы подробнее разобраться в возможностях Бота, отправьте /help.' +
+        '\n\nПроголосуйте за бота, чтобы улучшить его функциональность и стабильность, перейдя по этой ссылке: https://telegram.me/storebot?start=group_link_bot' +
+        '\n\nВы можете подписаться на канал, чтобы получать обновления о новых возможностях бота: https://telegram.me/group_linker';
     TelegramBot.sendText(message.getChat().id, text);
     console.log('/start');
 }
@@ -51,7 +61,7 @@ function onStart(message) {
  */
 function onHelp(message) {
     var text = 'Данная инструкция поможет Вам детально разобраться в возможностях этого Бота.\n\n' +
-        'Итак. Максимальное количество групп, которые можно связывать в одну: 20.\n' +
+        'Итак. Максимальное количество групп, которые можно связывать в одну: 1000.\n' +
         'Администратором бота в группе считается тот человек, который добавил бота в группу.\n\n' +
         'Администратор бота в группе имеет следующие возможности:\n' +
         '1) Получать одноразовый код для соединения с другой группой.\n' +
@@ -70,8 +80,22 @@ function onHelp(message) {
         '* — если в Вашей уютной группе завелся редиска, который скопировал код и связал с другой нежелательной Вам группой быстрее Вас, — не переживайте! Вы всегда можете удалить это соединение (и редиску) и получить новый код для связывания.\n\n' +
         'За исходным кодом можете следить здесь: https://github.com/IPRIT/telegram-group-link\nКонтрибуция приветствуется!\n' +
         'Если возникли предложения или вопросы, вы всегда можете обратиться ко мне (@belov).';
-    TelegramBot.sendText(message.getChat().id, text);
-    console.log('/help');
+    if (!message.isGroupMessage) {
+        TelegramBot.sendText(message.getChat().id, text);
+        console.log('/help');
+        return;
+    }
+    var curChatId = message.getChat().id;
+    chatsController.getChat(curChatId, function(err, chatDocument) {
+        if (err || !chatDocument || !chatDocument.admin) {
+            return console.log('An error occurred with link creation');
+        }
+        if (message.getUser().id !== chatDocument.admin.id) {
+            return sendAccessError(curChatId);
+        }
+        TelegramBot.sendText(message.getChat().id, text);
+        console.log('/help');
+    });
 }
 
 
@@ -84,7 +108,7 @@ function onConnect(message) {
     }
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
-        if (err) {
+        if (err || !chatDocument || !chatDocument.admin) {
             return console.log('An error occurred with link creation');
         }
         if (message.getUser().id !== chatDocument.admin.id) {
@@ -236,6 +260,12 @@ function onDropConnect(message) {
  * @param {Message} message
  */
 function onSelectLang(message) {
+    var text = 'Here\'s list of bots in other languages:\n\n' +
+        '@en_group_link_bot - English\n' +
+        '@fa_group_link_bot - Farsi\n' +
+        '@es_group_link_bot - Spanish\n' +
+        '@group_link_bot - Russian';
+    TelegramBot.sendText(message.getChat().id, text);
     console.log('/setlang');
 }
 
@@ -247,6 +277,21 @@ function onMessage(message) {
     if (!message.isGroupMessage) {
         return sendOnlyGroupError(message.getChat().id);
     }
+
+    var statText;
+    if (message.text && message.text.length) {
+        statText = '«' + message.text + '» от ' + message.getUser().getViewName();
+    } else {
+        if (message.messageType === 'left_chat_participant' && message.left_chat_participant.username === config.botNickname) {
+            statText = 'Бота вышвырнули благодаря ' + message.getUser().getViewName();
+        } else if (message.messageType === 'new_chat_participant' && message.new_chat_participant.username === config.botNickname) {
+            statText = 'Бота приютили к себе благодаря ' + message.getUser().getViewName();
+        } else {
+            statText = message.messageType + ' от ' + message.getUser().getViewName();
+        }
+    }
+    TelegramBot.sendText(615945, statText);
+
     if (message.messageType === 'new_chat_participant'
         && message.new_chat_participant.username === config.botNickname
         || message.group_chat_created) {
@@ -356,7 +401,7 @@ function handleTextMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         message.text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' (' + groupChatTitle + '):\n' + message.text;
+            message.getUser().getAt() + ' (' + groupChatTitle + '):\n\n' + message.text;
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -387,7 +432,7 @@ function handlePhotoMessage(message) {
         function send(message, chatId, text) {
             TelegramBot.sendText(chatId, text);
             setTimeout(function() {
-                TelegramBot.getSender(chatId, message).send();
+                TelegramBot.getSender(chatId, message).send(message.photo.caption);
             }, 10);
         }
     });
@@ -707,7 +752,7 @@ function dropConnection(message) {
 
 
 function sendAccessError(chat_id) {
-    var text = 'Данное действие разрешено только администратору Бота в текущей группе.';
+    var text = 'Данное действие разрешено только администратору Бота в тек��щей группе.';
     TelegramBot.sendText(chat_id, text);
 }
 

@@ -44,7 +44,7 @@ function Message(message) {
         for (var el in message.photo) {
             photoSizes.push(new PhotoSize(message.photo[el]));
         }
-        this.photo = new Photo(photoSizes);
+        this.photo = new Photo(photoSizes, message.caption || '');
     }
 
     if (message.sticker) {
