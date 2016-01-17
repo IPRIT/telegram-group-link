@@ -20,7 +20,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/', routes);
+app.use('/en', routes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

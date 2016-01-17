@@ -1,8 +1,9 @@
-function Photo(photoArr) {
+function Photo(photoArr, caption) {
     if (!Array.isArray(photoArr)) {
         photoArr = [];
     }
     this.photoArr = photoArr;
+    this.caption = caption;
 }
 
 Photo.prototype.getObjectFactory = function() {

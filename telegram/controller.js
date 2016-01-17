@@ -10,7 +10,7 @@ function Controller() {
 /**
  * @type {number}
  */
-Controller.prototype.LIMIT_NUMBER_OF_ACTIVE_LINKS = 20;
+Controller.prototype.LIMIT_NUMBER_OF_ACTIVE_LINKS = 1000;
 
 
 /**
@@ -73,7 +73,7 @@ Controller.prototype.deleteChat = function(chat_id, callback) {
  */
 Controller.prototype.getChat = function(chat_id, callback) {
     ChatsModel.findOne({ 'chat.id': chat_id }, function(err, chatDocument) {
-        if (err) {
+        if (err || !chatDocument) {
             return callback(true);
         }
         callback(false, chatDocument);

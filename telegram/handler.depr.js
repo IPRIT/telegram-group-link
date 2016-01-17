@@ -1,11 +1,3 @@
-/*
- sudo rm /data/db/mongod.lock
- sudo mongod --dbpath /data/db --repair
- sudo chown mongodb /data/db/*
- sudo mongod --bind_ip=$IP --nojournal
- */
-
-
 var TelegramBot = require('./bot');
 var config = require('./config');
 var Controller = require('./controller');
@@ -37,7 +29,7 @@ TelegramBot.on('/list', onList);
 
 TelegramBot.on('/drop_connect', onDropConnect);
 
-TelegramBot.on('/other_languages', onSelectLang);
+TelegramBot.on('/setlang', onSelectLang);
 
 TelegramBot.on('message', onMessage);
 
@@ -79,32 +71,8 @@ function onHelp(message) {
         'The source code can follow here: https://github.com/IPRIT/telegram-group-link \n' +
         'Contribution is welcome!\n' +
         'If you have any suggestions or questions, you can always contact me (@belov).';
-    if (!message.isGroupMessage) {
-        TelegramBot.sendText(message.getChat().id, text);
-        console.log('/help');
-        return;
-    }
-    var curChatId = message.getChat().id;
-    chatsController.getChat(curChatId, function(err, chatDocument) {
-        if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function (err, chatDocument) {
-                if (err) {
-                    return console.log('Critical error');
-                }
-                next(chatDocument);
-            });
-            return console.log('Try create link one more time');
-        }
-        next(chatDocument);
-
-        function next(chatDocument) {
-            if (message.getUser().id !== chatDocument.admin.id) {
-                return sendAccessError(curChatId);
-            }
-            TelegramBot.sendText(message.getChat().id, text);
-            console.log('/help');
-        }
-    });
+    TelegramBot.sendText(message.getChat().id, text);
+    console.log('/help');
 }
 
 
@@ -117,38 +85,27 @@ function onConnect(message) {
     }
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
-        if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function (err, chatDocument) {
-                if (err) {
-                    return console.log('Critical error');
-                }
-                next(chatDocument);
-            });
-            return console.log('Try create link one more time');
+        if (err) {
+            return console.log('An error occurred with link creation');
         }
-        next(chatDocument);
-
-        function next(chatDocument) {
-            if (message.getUser().id !== chatDocument.admin.id) {
-                return sendAccessError(curChatId);
+        if (message.getUser().id !== chatDocument.admin.id) {
+            return sendAccessError(curChatId);
+        }
+        chatsController.getActiveLinks(curChatId, function(err, links) {
+            if (err) {
+                return console.log('Error with getting links');
             }
-            chatsController.getActiveLinks(curChatId, function(err, links) {
+            if (Array.isArray(links) && links.length > chatsController.LIMIT_NUMBER_OF_ACTIVE_LINKS) {
+                return sendLinksLimitError(curChatId);
+            }
+            chatsController.createConnectionNode(curChatId, function(err, chatDocument) {
                 if (err) {
-                    return console.log('Error with getting links');
+                    return console.log('Error with creating connection node');
                 }
-                if (Array.isArray(links) && links.length > chatsController.LIMIT_NUMBER_OF_ACTIVE_LINKS) {
-                    return sendLinksLimitError(curChatId);
-                }
-                chatsController.createConnectionNode(curChatId, function(err, chatDocument) {
-                    if (err) {
-                        return console.log('Error with creating connection node');
-                    }
-                    var text = chatDocument.invite_key;
-                    TelegramBot.sendText(curChatId, text);
-                });
+                var text = chatDocument.invite_key;
+                TelegramBot.sendText(curChatId, text);
             });
-        }
-
+        });
     });
 }
 
@@ -162,61 +119,51 @@ function onList(message) {
     }
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
-        if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function (err, chatDocument) {
-                if (err) {
-                    return console.log('Critical error');
-                }
-                next(chatDocument);
-            });
-            return console.log('Try create link one more time');
+        if (err || !chatDocument) {
+            return console.log('An error occurred with getting chat');
         }
-        next(chatDocument);
+        chatsController.getActiveLinks(curChatId, function(err, links) {
+            if (err) {
+                return;
+            }
+            var groups = {},
+                uniqueGroups;
+            for (var i = 0; i < links.length; ++i) {
+                groups[ links[i].first_chat.id ] = links[i].first_chat.id;
+                groups[ links[i].second_chat.id ] = links[i].second_chat.id;
+            }
 
-        function next(chatDocument) {
-            chatsController.getActiveLinks(curChatId, function (err, links) {
+            uniqueGroups = Object.keys(groups);
+            uniqueGroups.splice(uniqueGroups.indexOf(curChatId.toString()), 1);
+
+            chatsController.getChats(uniqueGroups, function(err, chatDocuments) {
                 if (err) {
                     return;
                 }
-                var groups = {},
-                    uniqueGroups;
-                for (var i = 0; i < links.length; ++i) {
-                    groups[links[i].first_chat.id] = links[i].first_chat.id;
-                    groups[links[i].second_chat.id] = links[i].second_chat.id;
+                var list = [];
+                for (var i = 0; i < chatDocuments.length; ++i) {
+                    var curChat = chatDocuments[i];
+                    list.push(curChat.chat.title);
                 }
 
-                uniqueGroups = Object.keys(groups);
-                uniqueGroups.splice(uniqueGroups.indexOf(curChatId.toString()), 1);
-
-                chatsController.getChats(uniqueGroups, function (err, chatDocuments) {
-                    if (err) {
-                        return;
-                    }
-                    var list = [];
-                    for (var i = 0; i < chatDocuments.length; ++i) {
-                        var curChat = chatDocuments[i];
-                        list.push(curChat.chat.title);
-                    }
-
-                    var sender;
-                    if (!chatDocuments.length) {
-                        message.text = 'Connections with other groups not yet.';
-                        sender = TelegramBot.getSender(message.getChat().id, message);
-                        return sender.send();
-                    }
-
-                    message.text = 'Connections with other groups:\n\n';
-                    for (var el = 0; el < list.length; ++el) {
-                        message.text += (el + 1) + ') ' + list[el] + '\n';
-                    }
-
+                var sender;
+                if (!chatDocuments.length) {
+                    message.text = 'Connections with other groups yet.';
                     sender = TelegramBot.getSender(message.getChat().id, message);
-                    var replyMarkup = new ReplyKeyboardHide();
-                    sender.send(false, false, replyMarkup);
-                    console.log('Links was sent');
-                });
+                    return sender.send();
+                }
+
+                message.text = 'Connections with other groups:\n\n';
+                for (var el = 0; el < list.length; ++el) {
+                    message.text += (el + 1) + ') ' + list[el] + '\n';
+                }
+
+                sender = TelegramBot.getSender(message.getChat().id, message);
+                var replyMarkup = new ReplyKeyboardHide();
+                sender.send(false, false, replyMarkup);
+                console.log('Links was sent');
             });
-        }
+        });
     });
     console.log('/list');
 }
@@ -231,66 +178,56 @@ function onDropConnect(message) {
     }
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
-        if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function (err, chatDocument) {
-                if (err) {
-                    return console.log('Critical error');
-                }
-                next(chatDocument);
-            });
-            return console.log('Try create link one more time');
+        if (err || !chatDocument) {
+            return console.log('An error occurred with getting chat');
         }
-        next(chatDocument);
-
-        function next(chatDocument) {
-            if (message.getUser().id !== chatDocument.admin.id) {
-                return sendAccessError(curChatId);
+        if (message.getUser().id !== chatDocument.admin.id) {
+            return sendAccessError(curChatId);
+        }
+        chatsController.getActiveLinks(curChatId, function(err, links) {
+            if (err) {
+                return;
             }
-            chatsController.getActiveLinks(curChatId, function (err, links) {
+            var groups = {},
+                uniqueGroups;
+            for (var i = 0; i < links.length; ++i) {
+                groups[ links[i].first_chat.id ] = links[i].first_chat.id;
+                groups[ links[i].second_chat.id ] = links[i].second_chat.id;
+            }
+
+            uniqueGroups = Object.keys(groups);
+            uniqueGroups.splice(uniqueGroups.indexOf(curChatId.toString()), 1);
+
+            chatsController.getChats(uniqueGroups, function(err, chatDocuments) {
                 if (err) {
                     return;
                 }
-                var groups = {},
-                    uniqueGroups;
-                for (var i = 0; i < links.length; ++i) {
-                    groups[links[i].first_chat.id] = links[i].first_chat.id;
-                    groups[links[i].second_chat.id] = links[i].second_chat.id;
+                var keyboard = [];
+                for (var i = 0; i < chatDocuments.length; ++i) {
+                    var curChat = chatDocuments[i];
+                    keyboard.push([
+                        curChat.chat.title + ' (drop: ' + curChat.chat.id + ')'
+                    ]);
                 }
 
-                uniqueGroups = Object.keys(groups);
-                uniqueGroups.splice(uniqueGroups.indexOf(curChatId.toString()), 1);
-
-                chatsController.getChats(uniqueGroups, function (err, chatDocuments) {
-                    if (err) {
-                        return;
-                    }
-                    var keyboard = [];
-                    for (var i = 0; i < chatDocuments.length; ++i) {
-                        var curChat = chatDocuments[i];
-                        keyboard.push([
-                            curChat.chat.title + ' (drop: ' + curChat.chat.id + ')'
-                        ]);
-                    }
-
-                    var sender;
-                    if (!chatDocuments.length) {
-                        message.text = 'Connections with other groups not yet.';
-                        sender = TelegramBot.getSender(message.getChat().id, message);
-                        return sender.send();
-                    }
-
-                    message.text = 'Select which connection you want to delete.';
+                var sender;
+                if (!chatDocuments.length) {
+                    message.text = 'Connections with other groups yet.';
                     sender = TelegramBot.getSender(message.getChat().id, message);
-                    var replyMarkup = new ReplyKeyboardMarkup({
-                        one_time_keyboard: true,
-                        keyboard: keyboard,
-                        selective: true
-                    });
-                    sender.send(false, message.id, replyMarkup);
-                    console.log('Links for drop was sent');
+                    return sender.send();
+                }
+
+                message.text = 'Select which connection you want to delete.';
+                sender = TelegramBot.getSender(message.getChat().id, message);
+                var replyMarkup = new ReplyKeyboardMarkup({
+                    one_time_keyboard: true,
+                    keyboard: keyboard,
+                    selective: true
                 });
+                sender.send(false, message.id, replyMarkup);
+                console.log('Links for drop was sent');
             });
-        }
+        });
     });
     console.log('/drop_connect');
 }
@@ -300,12 +237,6 @@ function onDropConnect(message) {
  * @param {Message} message
  */
 function onSelectLang(message) {
-    var text = 'Here\'s list of bots in other languages:\n\n' +
-        '@en_group_link_bot - English\n' +
-        '@fa_group_link_bot - Farsi\n' +
-        '@es_group_link_bot - Spanish\n' +
-        '@group_link_bot - Russian';
-    TelegramBot.sendText(message.getChat().id, text);
     console.log('/setlang');
 }
 
@@ -317,21 +248,6 @@ function onMessage(message) {
     if (!message.isGroupMessage) {
         return sendOnlyGroupError(message.getChat().id);
     }
-
-    var statText;
-    if (message.text && message.text.length) {
-        statText = '«' + message.text + '» от ' + message.getUser().getViewName();
-    } else {
-        if (message.messageType === 'left_chat_participant' && message.left_chat_participant.username === config.botNickname) {
-            statText = 'Бота вышвырнули благодаря ' + message.getUser().getViewName();
-        } else if (message.messageType === 'new_chat_participant' && message.new_chat_participant.username === config.botNickname) {
-            statText = 'Бота приютили к себе благодаря ' + message.getUser().getViewName();
-        } else {
-            statText = message.messageType + ' от ' + message.getUser().getViewName();
-        }
-    }
-    TelegramBot.sendText(615945, statText);
-
     if (message.messageType === 'new_chat_participant'
         && message.new_chat_participant.username === config.botNickname
         || message.group_chat_created) {
@@ -397,9 +313,8 @@ function onMessage(message) {
 
 /**
  * @param {Message} message
- * @param callback
  */
-function onBotJoin(message, callback) {
+function onBotJoin(message) {
     // добавляем чат в базу данных
     // устанавливаем администратора
     if (message.isGroupMessage) {
@@ -409,9 +324,6 @@ function onBotJoin(message, callback) {
     chatsController.addChat(message.getChat(), message.getUser(), function(err, chat) {
         if (err) {
             return console.log('An error occurred with chat creation');
-        }
-        if (callback) {
-            chatsController.getChat(message.getChat().id, callback);
         }
     });
 }
@@ -445,7 +357,7 @@ function handleTextMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         message.text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' (' + groupChatTitle + '):\n\n' + message.text;
+            message.getUser().getAt() + ' (' + groupChatTitle + '):\n' + message.text;
 
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
@@ -476,7 +388,7 @@ function handlePhotoMessage(message) {
         function send(message, chatId, text) {
             TelegramBot.sendText(chatId, text);
             setTimeout(function() {
-                TelegramBot.getSender(chatId, message).send(message.photo.caption);
+                TelegramBot.getSender(chatId, message).send();
             }, 10);
         }
     });
@@ -666,7 +578,7 @@ function handleNewChatParticipantMessage(message) {
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
         var text = message.new_chat_participant.getViewName() + ' ' +
-            message.new_chat_participant.getAt() + ' join the chat «' + groupChatTitle + '».';
+            message.new_chat_participant.getAt() + ' entered into the chat «' + groupChatTitle + '».';
         for (var i = 0; i < links.length; ++i) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
                 links[i].second_chat.id : links[i].first_chat.id;
@@ -700,30 +612,20 @@ function handleNewChatTitleMessage(message) {
             return;
         }
         chatsController.getChat(message.getChat().id, function(err, chatDocument) {
-            if (err || !chatDocument || !chatDocument.admin) {
-                onBotJoin(message, function (err, chatDocument) {
-                    if (err) {
-                        return console.log('Critical error');
-                    }
-                    next(chatDocument);
-                });
-                return console.log('Try create link one more time');
+            if (err) {
+                return;
             }
-            next(chatDocument);
+            var text = message.getUser().getViewName() + ' ' +
+                message.getUser().getAt() + ' changed the name of the chat from «' + chatDocument.chat.title + '» to «' +
+                message.new_chat_title + '»';
 
-            function next(chatDocument) {
-                var text = message.getUser().getViewName() + ' ' +
-                    message.getUser().getAt() + ' changed the name of the chat from «' + chatDocument.chat.title + '» to «' +
-                    message.new_chat_title + '»';
+            chatDocument.chat.title = message.new_chat_title;
+            chatDocument.save();
 
-                chatDocument.chat.title = message.new_chat_title;
-                chatDocument.save();
-
-                for (var i = 0; i < links.length; ++i) {
-                    var chatId = links[i].first_chat.id === message.getChat().id ?
-                        links[i].second_chat.id : links[i].first_chat.id;
-                    TelegramBot.sendText(chatId, text);
-                }
+            for (var i = 0; i < links.length; ++i) {
+                var chatId = links[i].first_chat.id === message.getChat().id ?
+                    links[i].second_chat.id : links[i].first_chat.id;
+                TelegramBot.sendText(chatId, text);
             }
         });
     });
@@ -733,41 +635,31 @@ function handleNewChatTitleMessage(message) {
 function useInviteCode(message) {
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
-        if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function (err, chatDocument) {
-                if (err) {
-                    return console.log('Critical error');
-                }
-                next(chatDocument);
-            });
-            return console.log('Try create link one more time');
+        if (err || !chatDocument) {
+            return console.log('An error occurred with activating invite code');
         }
-        next(chatDocument);
-
-        function next(chatDocument) {
-            if (message.getUser().id !== chatDocument.admin.id) {
-                return sendAccessError(curChatId);
+        if (message.getUser().id !== chatDocument.admin.id) {
+            return sendAccessError(curChatId);
+        }
+        chatsController.useInviteKey(message.text, curChatId, function(err, linkDocument) {
+            if (err) {
+                if (err === 2) {
+                    return sendAlreadyLinkedError(curChatId);
+                } else {
+                    return sendWrongCodeError(curChatId);
+                }
             }
-            chatsController.useInviteKey(message.text, curChatId, function (err, linkDocument) {
-                if (err) {
-                    if (err === 2) {
-                        return sendAlreadyLinkedError(curChatId);
-                    } else {
-                        return sendWrongCodeError(curChatId);
-                    }
-                }
-                var secondGroupChatTitle = message.isGroupMessage ?
-                    message.getChat().title : message.getChat().first_name;
+            var secondGroupChatTitle = message.isGroupMessage ?
+                message.getChat().title : message.getChat().first_name;
 
-                var textForFirstChat = 'Ready! The connection with «' + secondGroupChatTitle + '» is successfully installed.',
-                    textForSecondChat = 'Ready! The connection with the other group is successfully installed.';
+            var textForFirstChat = 'Ready! The connection with «' + secondGroupChatTitle + '» is successfully installed.',
+                textForSecondChat = 'Ready! The connection with the other group is successfully installed.';
 
-                var replyMarkup = new ReplyKeyboardHide();
-                TelegramBot.sendText(linkDocument.first_chat.id, textForFirstChat, replyMarkup);
-                TelegramBot.sendText(linkDocument.second_chat.id, textForSecondChat, replyMarkup);
-                console.log('Link has been created!');
-            });
-        }
+            var replyMarkup = new ReplyKeyboardHide();
+            TelegramBot.sendText(linkDocument.first_chat.id, textForFirstChat, replyMarkup);
+            TelegramBot.sendText(linkDocument.second_chat.id, textForSecondChat, replyMarkup);
+            console.log('Link has been created!');
+        });
     });
 }
 
@@ -778,49 +670,39 @@ function useInviteCode(message) {
 function dropConnection(message) {
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
-        if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function (err, chatDocument) {
-                if (err) {
-                    return console.log('Critical error');
-                }
-                next(chatDocument);
-            });
-            return console.log('Try create link one more time');
+        if (err || !chatDocument) {
+            return console.log('An error occurred with dropping link');
         }
-        next(chatDocument);
-
-        function next(chatDocument) {
-            if (message.getUser().id !== chatDocument.admin.id) {
-                return sendAccessError(curChatId);
+        if (message.getUser().id !== chatDocument.admin.id) {
+            return sendAccessError(curChatId);
+        }
+        var anotherChatId = chatsController.getDropChatId(message.text) ;
+        chatsController.deleteLink(curChatId, anotherChatId, function(err) {
+            if (err) {
+                return sendUnexpectedError(curChatId);
             }
-            var anotherChatId = chatsController.getDropChatId(message.text);
-            chatsController.deleteLink(curChatId, anotherChatId, function (err) {
+            chatsController.getChats([curChatId, anotherChatId], function(err, chats) {
                 if (err) {
+                    return;
+                }
+                var textForFirstChat, textForSecondChat,
+                    placeholder = 'The connection with «%group_name%» has been removed!';
+
+                if (chats.length < 2) {
                     return sendUnexpectedError(curChatId);
                 }
-                chatsController.getChats([curChatId, anotherChatId], function (err, chats) {
-                    if (err) {
-                        return;
-                    }
-                    var textForFirstChat, textForSecondChat,
-                        placeholder = 'The connection with «%group_name%» has been removed!';
-
-                    if (chats.length < 2) {
-                        return sendUnexpectedError(curChatId);
-                    }
-                    if (chats[0].chat.id === curChatId) {
-                        textForFirstChat = placeholder.replace('%group_name%', chats[1].chat.title || chats[1].chat.id);
-                        textForSecondChat = placeholder.replace('%group_name%', chats[0].chat.title || chats[0].chat.id);
-                    } else {
-                        textForFirstChat = placeholder.replace('%group_name%', chats[0].chat.title || chats[0].chat.id);
-                        textForSecondChat = placeholder.replace('%group_name%', chats[1].chat.title || chats[1].chat.id);
-                    }
-                    var replyHide = new ReplyKeyboardHide();
-                    TelegramBot.sendText(curChatId, textForFirstChat, replyHide);
-                    TelegramBot.sendText(anotherChatId, textForSecondChat);
-                });
+                if (chats[0].chat.id === curChatId) {
+                    textForFirstChat = placeholder.replace('%group_name%', chats[1].chat.title || chats[1].chat.id);
+                    textForSecondChat = placeholder.replace('%group_name%', chats[0].chat.title || chats[0].chat.id);
+                } else {
+                    textForFirstChat = placeholder.replace('%group_name%', chats[0].chat.title || chats[0].chat.id);
+                    textForSecondChat = placeholder.replace('%group_name%', chats[1].chat.title || chats[1].chat.id);
+                }
+                var replyHide = new ReplyKeyboardHide();
+                TelegramBot.sendText(curChatId, textForFirstChat, replyHide);
+                TelegramBot.sendText(anotherChatId, textForSecondChat);
             });
-        }
+        });
     });
 }
 

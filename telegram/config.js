@@ -1,4 +1,4 @@
 module.exports = {
-    botNickname: 'group_link_bot',
-    botToken: '93293084:AAGwckNzr_-eO3yUH_8Gfls5D4kb66F3qE8'
+    botNickname: 'en_group_link_bot',
+    botToken: '116985166:AAFEA-FfodorIKUzpIUKBKFS102Eip0SU8k'
 };
