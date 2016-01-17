@@ -88,14 +88,17 @@ function onHelp(message) {
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
         if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function () {
-                next();
+            onBotJoin(message, function (err, chatDocument) {
+                if (err) {
+                    return console.log('Critical error');
+                }
+                next(chatDocument);
             });
             return console.log('Try create link one more time');
         }
-        next();
+        next(chatDocument);
 
-        function next() {
+        function next(chatDocument) {
             if (message.getUser().id !== chatDocument.admin.id) {
                 return sendAccessError(curChatId);
             }
@@ -116,14 +119,17 @@ function onConnect(message) {
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
         if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function () {
-                next();
+            onBotJoin(message, function (err, chatDocument) {
+                if (err) {
+                    return console.log('Critical error');
+                }
+                next(chatDocument);
             });
             return console.log('Try create link one more time');
         }
-        next();
+        next(chatDocument);
 
-        function next() {
+        function next(chatDocument) {
             if (message.getUser().id !== chatDocument.admin.id) {
                 return sendAccessError(curChatId);
             }
@@ -158,14 +164,17 @@ function onList(message) {
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
         if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function () {
-                next();
+            onBotJoin(message, function (err, chatDocument) {
+                if (err) {
+                    return console.log('Critical error');
+                }
+                next(chatDocument);
             });
             return console.log('Try create link one more time');
         }
-        next();
+        next(chatDocument);
 
-        function next() {
+        function next(chatDocument) {
             chatsController.getActiveLinks(curChatId, function (err, links) {
                 if (err) {
                     return;
@@ -224,14 +233,17 @@ function onDropConnect(message) {
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
         if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function () {
-                next();
+            onBotJoin(message, function (err, chatDocument) {
+                if (err) {
+                    return console.log('Critical error');
+                }
+                next(chatDocument);
             });
             return console.log('Try create link one more time');
         }
-        next();
+        next(chatDocument);
 
-        function next() {
+        function next(chatDocument) {
             if (message.getUser().id !== chatDocument.admin.id) {
                 return sendAccessError(curChatId);
             }
@@ -386,6 +398,7 @@ function onMessage(message) {
 
 /**
  * @param {Message} message
+ * @param callback
  */
 function onBotJoin(message, callback) {
     // добавляем чат в базу данных
@@ -399,7 +412,7 @@ function onBotJoin(message, callback) {
             return console.log('An error occurred with chat creation');
         }
         if (callback) {
-            callback();
+            chatsController.getChat(message.getChat().id, callback);
         }
     });
 }
@@ -688,15 +701,18 @@ function handleNewChatTitleMessage(message) {
             return;
         }
         chatsController.getChat(message.getChat().id, function(err, chatDocument) {
-            if (err || !chatDocument) {
-                onBotJoin(message, function () {
-                    next();
+            if (err || !chatDocument || !chatDocument.admin) {
+                onBotJoin(message, function (err, chatDocument) {
+                    if (err) {
+                        return console.log('Critical error');
+                    }
+                    next(chatDocument);
                 });
                 return console.log('Try create link one more time');
             }
-            next();
+            next(chatDocument);
 
-            function next() {
+            function next(chatDocument) {
                 var text = message.getUser().getViewName() + ' ' +
                     message.getUser().getAt() + ' сменил(-а) имя чата с «' + chatDocument.chat.title + '» на «' +
                     message.new_chat_title + '»';
@@ -719,14 +735,17 @@ function useInviteCode(message) {
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
         if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function () {
-                next();
+            onBotJoin(message, function (err, chatDocument) {
+                if (err) {
+                    return console.log('Critical error');
+                }
+                next(chatDocument);
             });
             return console.log('Try create link one more time');
         }
-        next();
+        next(chatDocument);
 
-        function next() {
+        function next(chatDocument) {
             if (message.getUser().id !== chatDocument.admin.id) {
                 return sendAccessError(curChatId);
             }
@@ -761,14 +780,17 @@ function dropConnection(message) {
     var curChatId = message.getChat().id;
     chatsController.getChat(curChatId, function(err, chatDocument) {
         if (err || !chatDocument || !chatDocument.admin) {
-            onBotJoin(message, function () {
-                next();
+            onBotJoin(message, function (err, chatDocument) {
+                if (err) {
+                    return console.log('Critical error');
+                }
+                next(chatDocument);
             });
             return console.log('Try create link one more time');
         }
-        next();
+        next(chatDocument);
 
-        function next() {
+        function next(chatDocument) {
             if (message.getUser().id !== chatDocument.admin.id) {
                 return sendAccessError(curChatId);
             }
