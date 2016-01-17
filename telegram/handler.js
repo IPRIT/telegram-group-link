@@ -752,7 +752,7 @@ function dropConnection(message) {
 
 
 function sendAccessError(chat_id) {
-    var text = 'Данное действие разрешено только администратору Бота в тек��щей группе.';
+    var text = 'Данное действие разрешено только администратору Бота в текущей группе.';
     TelegramBot.sendText(chat_id, text);
 }
 
