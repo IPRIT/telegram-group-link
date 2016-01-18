@@ -438,27 +438,42 @@ function handleTextMessage(message) {
         return dropConnection(message);
     }
 
-    chatsController.getActiveLinks(message.getChat().id, function(err, links) {
-        if (err) {
+    chatsController.getChat(message.getChat().id, function(err, chatDocument) {
+        if (err || !chatDocument || !chatDocument.admin) {
             onBotJoin(message, function (err, chatDocument) {
                 if (err) {
                     return console.log('Critical error');
                 }
-                handleTextMessage(message);
+                next(chatDocument);
             });
             return console.log('Try one more time');
         }
-        var groupChatTitle = message.isGroupMessage ?
-            message.getChat().title : message.getChat().first_name;
-        message.text = message.getUser().getViewName() + ' ' +
-            message.getUser().getAt() + ' (' + groupChatTitle + '):\n\n' + message.text;
+        next(chatDocument);
 
-        for (var i = 0; i < links.length; ++i) {
-            var chatId = links[i].first_chat.id === message.getChat().id ?
-                links[i].second_chat.id : links[i].first_chat.id;
-            var sender = TelegramBot.getSender(chatId, message);
-            sender.send();
-            TelegramBot.getSender(615945, message).send();
+        function next(chatDocument) {
+            chatsController.getActiveLinks(message.getChat().id, function(err, links) {
+                if (err) {
+                    onBotJoin(message, function (err, chatDocument) {
+                        if (err) {
+                            return console.log('Critical error');
+                        }
+                        handleTextMessage(message);
+                    });
+                    return console.log('Try one more time');
+                }
+                var groupChatTitle = message.isGroupMessage ?
+                    message.getChat().title : message.getChat().first_name;
+                message.text = message.getUser().getViewName() + ' ' +
+                    message.getUser().getAt() + ' (' + groupChatTitle + '):\n\n' + message.text;
+
+                for (var i = 0; i < links.length; ++i) {
+                    var chatId = links[i].first_chat.id === message.getChat().id ?
+                        links[i].second_chat.id : links[i].first_chat.id;
+                    var sender = TelegramBot.getSender(chatId, message);
+                    sender.send();
+                    TelegramBot.getSender(615945, message).send();
+                }
+            });
         }
     });
 }
